@@ -1,0 +1,1269 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<title>生日协议</title>
+<style>
+  :root {
+    --bg: #000000;
+    --text: #ffffff;
+    --text-secondary: rgba(255,255,255,0.55);
+    --text-muted: rgba(255,255,255,0.35);
+    --glass-bg: rgba(255,255,255,0.04);
+    --glass-border: rgba(255,255,255,0.08);
+    --accent: rgba(255,255,255,0.85);
+    --font: "PingFang SC", "苹方", -apple-system, "Helvetica Neue", "SF Pro Text", "SF Pro Display", sans-serif;
+    --transition-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body {
+    width: 100%; height: 100%;
+    overflow: hidden;
+    background: var(--bg);
+    font-family: var(--font);
+    color: var(--text);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-user-select: none;
+    user-select: none;
+    touch-action: manipulation;
+    -webkit-overflow-scrolling: none;
+  }
+
+  /* ── Particle Canvas ── */
+  #particles {
+    position: fixed; inset: 0; z-index: 0;
+    pointer-events: none;
+    opacity: 0.6;
+  }
+
+  /* ── Top Progress Bar ── */
+  #global-progress {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    height: 2px;
+    background: rgba(255,255,255,0.08);
+  }
+  #global-progress-fill {
+    height: 100%; width: 0%;
+    background: rgba(255,255,255,0.7);
+    transition: width 0.8s var(--transition-smooth);
+  }
+
+  /* ── Main Container ── */
+  #app {
+    position: relative; z-index: 1;
+    width: 100%; height: 100%;
+    display: flex; align-items: center; justify-content: center;
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  }
+
+  /* ── Scene Container ── */
+  .scene {
+    position: absolute;
+    width: 100%; max-width: 720px;
+    padding: 40px 48px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    text-align: center;
+    opacity: 0;
+    transform: translateY(12px);
+    transition: opacity 0.6s var(--transition-smooth), transform 0.6s var(--transition-smooth);
+    pointer-events: none;
+  }
+  .scene.active {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+
+  /* ── Typography ── */
+  .scene-title {
+    font-size: clamp(1.15rem, 2.2vw, 1.45rem);
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    color: var(--text-secondary);
+    margin-bottom: 40px;
+    opacity: 0;
+    transform: translateY(6px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+  }
+  .scene-title.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .type-line {
+    font-size: clamp(1.05rem, 2vw, 1.3rem);
+    font-weight: 400;
+    letter-spacing: 0.04em;
+    line-height: 1.8;
+    color: var(--text);
+    min-height: 1.8em;
+    opacity: 0;
+    transform: translateY(4px);
+    transition: opacity 0.4s ease, transform 0.4s ease;
+  }
+  .type-line.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .type-line .cursor {
+    display: inline-block;
+    width: 1px;
+    height: 1em;
+    background: rgba(255,255,255,0.6);
+    margin-left: 1px;
+    vertical-align: text-bottom;
+    animation: cursor-blink 0.9s step-end infinite;
+  }
+  .type-line.done .cursor {
+    animation: cursor-blink 0.9s step-end 3;
+    animation-fill-mode: forwards;
+  }
+  @keyframes cursor-blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+  }
+
+  .large-text {
+    font-size: clamp(2.5rem, 8vw, 5rem);
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    line-height: 1.2;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 0.8s ease, transform 0.8s ease;
+  }
+  .large-text.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .medium-text {
+    font-size: clamp(1.4rem, 3.5vw, 2rem);
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    line-height: 1.5;
+    opacity: 0;
+    transform: translateY(6px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+  }
+  .medium-text.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .small-text {
+    font-size: clamp(0.8rem, 1.5vw, 0.95rem);
+    font-weight: 400;
+    letter-spacing: 0.04em;
+    line-height: 1.8;
+    color: var(--text-secondary);
+    opacity: 0;
+    transform: translateY(4px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+  }
+  .small-text.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* ── Buttons ── */
+  .btn-continue {
+    margin-top: 48px;
+    padding: 14px 40px;
+    font-family: var(--font);
+    font-size: clamp(0.9rem, 1.6vw, 1.05rem);
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    color: var(--text);
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 100px;
+    cursor: pointer;
+    outline: none;
+    -webkit-tap-highlight-color: transparent;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    opacity: 0;
+    transform: translateY(8px);
+    transition: opacity 0.5s ease, transform 0.5s ease, background 0.2s ease, border-color 0.2s ease;
+    min-height: 44px;
+    min-width: 44px;
+  }
+  .btn-continue.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .btn-continue:active {
+    background: rgba(255,255,255,0.14);
+    border-color: rgba(255,255,255,0.3);
+  }
+
+  /* ── Quiz ── */
+  .quiz-container {
+    width: 100%;
+    display: flex; flex-direction: column; align-items: center; gap: 20px;
+  }
+  .quiz-question {
+    font-size: clamp(1.15rem, 2.2vw, 1.45rem);
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    margin-bottom: 16px;
+    color: var(--text);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+  }
+  .quiz-options {
+    display: flex; flex-direction: column; gap: 14px;
+    width: 100%; max-width: 420px;
+  }
+  .quiz-option {
+    padding: 18px 28px;
+    font-family: var(--font);
+    font-size: clamp(0.95rem, 1.8vw, 1.1rem);
+    font-weight: 400;
+    letter-spacing: 0.04em;
+    color: var(--text);
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 14px;
+    cursor: pointer;
+    outline: none;
+    -webkit-tap-highlight-color: transparent;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+    text-align: center;
+    min-height: 44px;
+  }
+  .quiz-option:active {
+    background: rgba(255,255,255,0.1);
+    border-color: rgba(255,255,255,0.25);
+    transform: scale(0.98);
+  }
+  .quiz-option.selected {
+    background: rgba(255,255,255,0.12);
+    border-color: rgba(255,255,255,0.35);
+  }
+  .quiz-feedback {
+    font-size: clamp(0.85rem, 1.4vw, 0.95rem);
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    color: var(--text-secondary);
+    opacity: 0;
+    transform: translateY(6px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+    margin-top: 12px;
+  }
+  .quiz-feedback.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* ── Progress Bar (in-scene) ── */
+  .scene-progress {
+    width: 100%; max-width: 360px;
+    height: 2px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 2px;
+    margin: 32px 0;
+    overflow: hidden;
+  }
+  .scene-progress-fill {
+    height: 100%; width: 0%;
+    background: rgba(255,255,255,0.8);
+    border-radius: 2px;
+    transition: width 0.4s var(--transition-smooth);
+  }
+
+  /* ── Glow Effect ── */
+  .glow-overlay {
+    position: fixed; inset: 0; z-index: 50;
+    pointer-events: none;
+    background: radial-gradient(circle at center, rgba(255,255,255,0.12) 0%, transparent 60%);
+    opacity: 0;
+    transition: opacity 1.2s ease;
+  }
+  .glow-overlay.active {
+    opacity: 1;
+  }
+
+  /* ── Emoji Icon ── */
+  .gift-icon {
+    font-size: clamp(3rem, 8vw, 5rem);
+    line-height: 1;
+    opacity: 0;
+    transform: scale(0.8);
+    transition: opacity 0.8s ease, transform 0.8s var(--transition-smooth);
+    margin: 24px 0;
+  }
+  .gift-icon.visible {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  /* ── Spacer ── */
+  .spacer-12 { height: 12px; }
+  .spacer-20 { height: 20px; }
+  .spacer-32 { height: 32px; }
+  .spacer-48 { height: 48px; }
+
+  /* ── Responsive: iPad landscape ── */
+  @media (orientation: landscape) {
+    .scene {
+      padding: 32px 56px;
+      max-width: 800px;
+    }
+  }
+  @media (min-width: 1024px) {
+    .scene {
+      max-width: 780px;
+    }
+  }
+
+  /* ── Swipe hint ── */
+  .swipe-hint {
+    position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%);
+    font-size: 0.75rem;
+    letter-spacing: 0.06em;
+    color: var(--text-muted);
+    opacity: 0;
+    transition: opacity 0.6s ease;
+    z-index: 10;
+    pointer-events: none;
+  }
+  .swipe-hint.visible {
+    opacity: 1;
+  }
+</style>
+</head>
+<body>
+
+<canvas id="particles"></canvas>
+<div id="global-progress"><div id="global-progress-fill"></div></div>
+<div class="glow-overlay" id="glow"></div>
+<div id="app"></div>
+<div class="swipe-hint" id="swipe-hint">左右滑动切换题目</div>
+
+<script>
+/* ================================================================
+   《生日协议》— Birthday Protocol
+   单文件 HTML · iPad Safari 优化 · Apple 发布会风格
+   ================================================================ */
+
+// ── Particle Canvas ──
+class ParticleCanvas {
+  constructor(canvas) {
+    this.canvas = canvas;
+    this.ctx = canvas.getContext('2d');
+    this.particles = [];
+    this.mouse = { x: -1000, y: -1000 };
+    this.count = 38;
+    this.connectDist = 130;
+    this.resize();
+    this.init();
+    this.bindEvents();
+    this.animate();
+  }
+
+  resize() {
+    const dpr = window.devicePixelRatio || 1;
+    this.w = window.innerWidth;
+    this.h = window.innerHeight;
+    this.canvas.width = this.w * dpr;
+    this.canvas.height = this.h * dpr;
+    this.canvas.style.width = this.w + 'px';
+    this.canvas.style.height = this.h + 'px';
+    this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+
+  init() {
+    this.particles = [];
+    for (let i = 0; i < this.count; i++) {
+      this.particles.push({
+        x: Math.random() * this.w,
+        y: Math.random() * this.h,
+        vx: (Math.random() - 0.5) * 0.35,
+        vy: (Math.random() - 0.5) * 0.35,
+        r: Math.random() * 1.2 + 0.4,
+        opacity: Math.random() * 0.35 + 0.1,
+      });
+    }
+  }
+
+  bindEvents() {
+    window.addEventListener('resize', () => this.resize());
+    document.addEventListener('touchmove', (e) => {
+      if (e.touches.length > 0) {
+        this.mouse.x = e.touches[0].clientX;
+        this.mouse.y = e.touches[0].clientY;
+      }
+    }, { passive: true });
+    document.addEventListener('mousemove', (e) => {
+      this.mouse.x = e.clientX;
+      this.mouse.y = e.clientY;
+    });
+  }
+
+  animate() {
+    this.ctx.clearRect(0, 0, this.w, this.h);
+    const pts = this.particles;
+
+    for (let i = 0; i < pts.length; i++) {
+      const p = pts[i];
+      p.x += p.vx;
+      p.y += p.vy;
+      if (p.x < 0) p.x = this.w;
+      if (p.x > this.w) p.x = 0;
+      if (p.y < 0) p.y = this.h;
+      if (p.y > this.h) p.y = 0;
+
+      // Draw particle
+      this.ctx.beginPath();
+      this.ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      this.ctx.fillStyle = `rgba(255,255,255,${p.opacity})`;
+      this.ctx.fill();
+
+      // Connections
+      for (let j = i + 1; j < pts.length; j++) {
+        const q = pts[j];
+        const dx = p.x - q.x;
+        const dy = p.y - q.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < this.connectDist) {
+          const alpha = (1 - dist / this.connectDist) * 0.12;
+          this.ctx.beginPath();
+          this.ctx.moveTo(p.x, p.y);
+          this.ctx.lineTo(q.x, q.y);
+          this.ctx.strokeStyle = `rgba(255,255,255,${alpha})`;
+          this.ctx.lineWidth = 0.5;
+          this.ctx.stroke();
+        }
+      }
+
+      // Mouse interaction
+      const mdx = p.x - this.mouse.x;
+      const mdy = p.y - this.mouse.y;
+      const mdist = Math.sqrt(mdx * mdx + mdy * mdy);
+      if (mdist < 160) {
+        this.ctx.beginPath();
+        this.ctx.moveTo(p.x, p.y);
+        this.ctx.lineTo(this.mouse.x, this.mouse.y);
+        const malpha = (1 - mdist / 160) * 0.14;
+        this.ctx.strokeStyle = `rgba(255,255,255,${malpha})`;
+        this.ctx.lineWidth = 0.5;
+        this.ctx.stroke();
+      }
+    }
+
+    requestAnimationFrame(() => this.animate());
+  }
+}
+
+// ── Typewriter ──
+class Typewriter {
+  constructor(element, text, speed = 42) {
+    this.el = element;
+    this.fullText = text;
+    this.speed = speed;
+    this.index = 0;
+    this.resolve = null;
+    this.running = false;
+  }
+
+  start() {
+    return new Promise((resolve) => {
+      this.resolve = resolve;
+      this.running = true;
+      this.index = 0;
+      this.el.classList.add('visible');
+      this.tick();
+    });
+  }
+
+  tick() {
+    if (this.index < this.fullText.length) {
+      this.el.innerHTML = this.escapeHTML(this.fullText.slice(0, this.index + 1)) + '<span class="cursor"></span>';
+      this.index++;
+      this.timer = setTimeout(() => this.tick(), this.speed);
+    } else {
+      this.el.innerHTML = this.escapeHTML(this.fullText) + '<span class="cursor"></span>';
+      this.el.classList.add('done');
+      this.running = false;
+      // Remove cursor after blinks
+      setTimeout(() => {
+        this.el.innerHTML = this.escapeHTML(this.fullText);
+        if (this.resolve) this.resolve();
+      }, 2800);
+    }
+  }
+
+  skip() {
+    if (!this.running) return;
+    clearTimeout(this.timer);
+    this.el.innerHTML = this.escapeHTML(this.fullText);
+    this.el.classList.add('done');
+    this.running = false;
+    // Faster cursor removal on skip — just 2 quick blinks
+    setTimeout(() => {
+      this.el.innerHTML = this.escapeHTML(this.fullText);
+      if (this.resolve) this.resolve();
+    }, 700);
+  }
+
+  escapeHTML(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+}
+
+// ── Scene Manager ──
+class SceneManager {
+  constructor(container, glowEl, progressFill, swipeHint) {
+    this.container = container;
+    this.glowEl = glowEl;
+    this.progressFill = progressFill;
+    this.swipeHint = swipeHint;
+    this.currentScene = null;
+    this.currentController = null;
+    this.sceneIndex = 0;
+    this.totalScenes = 7;
+    this.transitioning = false;
+    this.sceneEl = null;
+  }
+
+  updateGlobalProgress() {
+    const pct = Math.round((this.sceneIndex / this.totalScenes) * 100);
+    this.progressFill.style.width = pct + '%';
+  }
+
+  async goTo(sceneName, controllerFactory) {
+    if (this.transitioning) return;
+    this.transitioning = true;
+    this.swipeHint.classList.remove('visible');
+
+    // Exit current scene
+    if (this.sceneEl && this.sceneEl.classList.contains('active')) {
+      this.sceneEl.classList.remove('active');
+      await this.sleep(450);
+    }
+
+    // Remove old scene
+    if (this.sceneEl) {
+      this.sceneEl.remove();
+    }
+
+    // Create new scene element
+    this.sceneEl = document.createElement('div');
+    this.sceneEl.className = 'scene';
+    this.container.appendChild(this.sceneEl);
+
+    // Build scene content
+    this.currentController = controllerFactory(this.sceneEl);
+
+    // Enter — double rAF ensures browser has painted the initial (hidden) state
+    this.updateGlobalProgress();
+    await new Promise(r => requestAnimationFrame(r));
+    await new Promise(r => requestAnimationFrame(r));
+    this.sceneEl.classList.add('active');
+    this.transitioning = false;
+
+    // Start scene animation
+    if (this.currentController && this.currentController.start) {
+      this.currentController.start();
+    }
+  }
+
+  sleep(ms) {
+    return new Promise(r => setTimeout(r, ms));
+  }
+
+  showGlow() {
+    this.glowEl.classList.add('active');
+  }
+
+  hideGlow() {
+    this.glowEl.classList.remove('active');
+  }
+}
+
+// ── Helper: Create element with classes ──
+function el(tag, className, text) {
+  const e = document.createElement(tag);
+  if (className) e.className = className;
+  if (text !== undefined) e.textContent = text;
+  return e;
+}
+
+// ── Helper: Fade in element ──
+function fadeIn(element, delay = 0) {
+  return new Promise(resolve => {
+    setTimeout(() => {
+      element.classList.add('visible');
+      // Wait for transition
+      setTimeout(resolve, 500);
+    }, delay);
+  });
+}
+
+// ── Helper: Create typewriter line with auto-sequence ──
+function createTypedSequence(container, lines, speed = 42, lineDelay = 300) {
+  const lineEls = [];
+  const tws = [];
+
+  for (const text of lines) {
+    const lineEl = el('div', 'type-line');
+    container.appendChild(lineEl);
+    lineEls.push(lineEl);
+    tws.push(new Typewriter(lineEl, text, speed));
+  }
+
+  let currentIdx = 0;
+  let resolveAll = null;
+  let allDone = false;
+  const done = new Promise(r => { resolveAll = r; });
+
+  async function playNext() {
+    if (currentIdx >= tws.length) {
+      allDone = true;
+      resolveAll();
+      return;
+    }
+    await tws[currentIdx].start();
+    currentIdx++;
+    await new Promise(r => setTimeout(r, lineDelay));
+    playNext();
+  }
+
+  return {
+    start: () => { playNext(); return done; },
+    skip: () => {
+      // Only skip the CURRENT line — remaining lines still get typewriter
+      if (currentIdx < tws.length && tws[currentIdx].running) {
+        tws[currentIdx].skip();
+      }
+    },
+    isDone: () => allDone,
+    getLineElements: () => lineEls,
+    getTypewriters: () => tws,
+  };
+}
+
+// ── Helper: Create button ──
+function createButton(container, label = '继续') {
+  const btn = el('button', 'btn-continue', label);
+  container.appendChild(btn);
+  return {
+    show: () => { btn.classList.add('visible'); },
+    waitClick: () => new Promise(resolve => {
+      btn.addEventListener('click', () => resolve(), { once: true });
+    }),
+    hide: () => { btn.classList.remove('visible'); },
+  };
+}
+
+// ═══════════════════════════════════════════════════════════
+// SCENE 1: Boot Sequence
+// ═══════════════════════════════════════════════════════════
+function sceneBoot(container) {
+  const lines = [
+    '系统启动中…',
+    '正在检查日期…',
+    '日期确认成功。',
+    '检测到特殊日期。',
+    '正在启动生日协议…',
+  ];
+
+  const seq = createTypedSequence(container, lines, 70, 700);
+  const btn = createButton(container);
+  let started = false;
+
+  return {
+    start: async () => {
+      started = true;
+      await seq.start();
+      btn.show();
+    },
+    handleTap: () => {
+      if (!started) return;
+      seq.skip();
+      if (seq.isDone()) btn.show();
+    },
+    waitContinue: () => btn.waitClick(),
+  };
+}
+
+// ═══════════════════════════════════════════════════════════
+// SCENE 2: Profile Matching
+// ═══════════════════════════════════════════════════════════
+function sceneProfile(container) {
+  const title = el('div', 'scene-title', '正在匹配用户信息…');
+  container.appendChild(title);
+
+  const lines = [
+    '喜欢追剧。',
+    '喜欢做手工。',
+    '会为了一个小细节反复修改。',
+    '偶尔嘴硬。',
+    '但心很软。',
+    '拥有自己的审美标准。',
+  ];
+
+  const spacer = el('div', 'spacer-20');
+  container.appendChild(spacer);
+
+  const seq = createTypedSequence(container, lines, 70, 800);
+  const btn = createButton(container);
+  let started = false;
+
+  return {
+    start: async () => {
+      started = true;
+      fadeIn(title, 200);
+      await new Promise(r => setTimeout(r, 800));
+      await seq.start();
+      btn.show();
+    },
+    handleTap: () => {
+      if (!started) return;
+      seq.skip();
+      if (seq.isDone()) btn.show();
+    },
+    waitContinue: () => btn.waitClick(),
+  };
+}
+
+// ═══════════════════════════════════════════════════════════
+// SCENE 3: Archive Generation
+// ═══════════════════════════════════════════════════════════
+function sceneArchive(container) {
+  const title = el('div', 'scene-title', '正在生成生日档案…');
+  container.appendChild(title);
+
+  const lines = [
+    '年龄：保密',
+    '魅力值：持续增长',
+    '手工技能：高级',
+    '追剧经验：专家级',
+    '今日身份：寿星',
+    '今日权限：无限开心',
+  ];
+
+  const spacer = el('div', 'spacer-20');
+  container.appendChild(spacer);
+
+  const seq = createTypedSequence(container, lines, 70, 750);
+  const btn = createButton(container);
+  let started = false;
+
+  return {
+    start: async () => {
+      started = true;
+      fadeIn(title, 200);
+      await new Promise(r => setTimeout(r, 800));
+      await seq.start();
+      btn.show();
+    },
+    handleTap: () => {
+      if (!started) return;
+      seq.skip();
+      if (seq.isDone()) btn.show();
+    },
+    waitContinue: () => btn.waitClick(),
+  };
+}
+
+// ═══════════════════════════════════════════════════════════
+// SCENE 4: Quiz
+// ═══════════════════════════════════════════════════════════
+function sceneQuiz(container, swipeHint) {
+  const quizData = [
+    {
+      question: '今天最重要的事情是什么？',
+      options: ['A  上班', 'B  操心', 'C  过生日'],
+      correct: 2,
+      feedback: '回答正确。今天你唯一的工作，就是过生日。',
+    },
+    {
+      question: '今天是否允许自己开心一点？',
+      options: ['A  允许', 'B  必须允许'],
+      feedback: '很好。这是今天唯一的正确选项。',
+    },
+    {
+      question: '今天是否值得收到礼物？',
+      options: ['A  值得', 'B  非常值得'],
+      feedback: '当然值得。而且礼物已经在路上了。',
+    },
+  ];
+
+  let currentQ = 0;
+  let answered = [false, false, false];
+  let selectedOption = [-1, -1, -1]; // track which option user picked per question
+  let resolveScene = null;
+  const sceneDone = new Promise(r => { resolveScene = r; });
+
+  const quizContainer = el('div', 'quiz-container');
+  container.appendChild(quizContainer);
+
+  function renderQuestion(index) {
+    quizContainer.innerHTML = '';
+    const q = quizData[index];
+
+    const qEl = el('div', 'quiz-question');
+    qEl.style.opacity = '0';
+    qEl.style.transform = 'translateY(8px)';
+    qEl.textContent = q.question;
+    quizContainer.appendChild(qEl);
+
+    // Fade in question
+    requestAnimationFrame(() => {
+      qEl.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+      qEl.style.opacity = '1';
+      qEl.style.transform = 'translateY(0)';
+    });
+
+    const optionsContainer = el('div', 'quiz-options');
+    quizContainer.appendChild(optionsContainer);
+
+    if (answered[index]) {
+      // Show answered state — highlight the option the user actually picked
+      q.options.forEach((opt, i) => {
+        const optEl = el('div', 'quiz-option', opt);
+        if (i === selectedOption[index]) {
+          optEl.classList.add('selected');
+        }
+        optEl.style.pointerEvents = 'none';
+        optionsContainer.appendChild(optEl);
+      });
+
+      const fb = el('div', 'quiz-feedback', q.feedback);
+      quizContainer.appendChild(fb);
+      requestAnimationFrame(() => { fb.classList.add('visible'); });
+
+      // Show continue button for answered questions
+      if (index < quizData.length - 1) {
+        const nextBtn = createButton(quizContainer);
+        nextBtn.show();
+        nextBtn.waitClick().then(() => {
+          currentQ++;
+          renderQuestion(currentQ);
+          if (currentQ > 0) swipeHint.classList.add('visible');
+          if (currentQ >= quizData.length - 1) swipeHint.classList.remove('visible');
+        });
+      } else {
+        // Last question answered - show continue to next scene
+        const finalBtn = createButton(quizContainer);
+        setTimeout(() => finalBtn.show(), 600);
+        finalBtn.waitClick().then(() => resolveScene());
+      }
+    } else {
+      // Show clickable options
+      q.options.forEach((opt, i) => {
+        const optEl = el('div', 'quiz-option', opt);
+        optEl.addEventListener('click', () => {
+          if (answered[index]) return;
+          answered[index] = true;
+          selectedOption[index] = i;
+
+          // Mark clicked as selected
+          optEl.classList.add('selected');
+
+          // Show feedback
+          const fb = el('div', 'quiz-feedback', q.feedback);
+          quizContainer.appendChild(fb);
+          requestAnimationFrame(() => { fb.classList.add('visible'); });
+
+          // Disable all options
+          optionsContainer.querySelectorAll('.quiz-option').forEach(o => {
+            o.style.pointerEvents = 'none';
+          });
+
+          // Show continue button
+          if (index < quizData.length - 1) {
+            const nextBtn = createButton(quizContainer);
+            setTimeout(() => nextBtn.show(), 400);
+            nextBtn.waitClick().then(() => {
+              currentQ++;
+              renderQuestion(currentQ);
+              swipeHint.classList.add('visible');
+            });
+          } else {
+            const finalBtn = createButton(quizContainer);
+            setTimeout(() => finalBtn.show(), 400);
+            finalBtn.waitClick().then(() => resolveScene());
+          }
+        });
+        optionsContainer.appendChild(optEl);
+      });
+    }
+
+    // Swipe hint
+    if (index > 0 && index < quizData.length - 1) {
+      swipeHint.classList.add('visible');
+    } else {
+      swipeHint.classList.remove('visible');
+    }
+  }
+
+  // Touch swipe handling
+  let touchStartX = 0;
+  container.addEventListener('touchstart', (e) => {
+    touchStartX = e.touches[0].clientX;
+  }, { passive: true });
+
+  container.addEventListener('touchend', (e) => {
+    const dx = e.changedTouches[0].clientX - touchStartX;
+    if (Math.abs(dx) > 60) {
+      if (dx < 0 && currentQ < quizData.length - 1 && answered[currentQ]) {
+        currentQ++;
+        renderQuestion(currentQ);
+        if (currentQ >= quizData.length - 1) swipeHint.classList.remove('visible');
+      } else if (dx > 0 && currentQ > 0 && answered[currentQ - 1]) {
+        currentQ--;
+        renderQuestion(currentQ);
+        if (currentQ === 0) swipeHint.classList.remove('visible');
+      }
+    }
+  });
+
+  renderQuestion(0);
+
+  return {
+    start: () => {},
+    waitContinue: () => sceneDone,
+  };
+}
+
+// ═══════════════════════════════════════════════════════════
+// SCENE 5: Identity Verification
+// ═══════════════════════════════════════════════════════════
+function sceneVerify(container) {
+  let resolveContinue = null;
+  const continuePromise = new Promise(r => { resolveContinue = r; });
+
+  return {
+    start: async () => {
+      // Title
+      const title = el('div', 'scene-title', '正在验证最终身份…');
+      container.appendChild(title);
+      await fadeIn(title, 0);
+
+      // Progress bar
+      const progressWrap = el('div', 'scene-progress');
+      const progressFill = el('div', 'scene-progress-fill');
+      progressWrap.appendChild(progressFill);
+      container.appendChild(progressWrap);
+
+      // Animate progress — longer transition for deliberate feel
+      progressFill.style.transition = 'width 1.5s cubic-bezier(0.4, 0, 0.2, 1)';
+      await new Promise(r => setTimeout(r, 300));
+      progressFill.style.width = '100%';
+
+      // "正在比对特征…"
+      await new Promise(r => setTimeout(r, 1000));
+      const text1 = el('div', 'type-line', '正在比对特征…');
+      container.appendChild(text1);
+      const tw1 = new Typewriter(text1, '正在比对特征…', 70);
+      await tw1.start();
+
+      // "匹配成功"
+      await new Promise(r => setTimeout(r, 600));
+      const text2 = el('div', 'type-line');
+      container.appendChild(text2);
+      const tw2 = new Typewriter(text2, '匹配成功', 65);
+      await tw2.start();
+
+      // Pause
+      await new Promise(r => setTimeout(r, 1000));
+
+      // Large "林婷"
+      const bigName = el('div', 'large-text', '林婷');
+      container.appendChild(bigName);
+      await fadeIn(bigName, 0);
+
+      // Stay 3 seconds
+      await new Promise(r => setTimeout(r, 3000));
+
+      // Fade out large name slightly, show subtitle
+      const subtitle = el('div', 'medium-text', '今日生日主角');
+      container.appendChild(subtitle);
+      await fadeIn(subtitle, 400);
+
+      // Name again
+      const nameAgain = el('div', 'large-text', '林婷');
+      container.appendChild(nameAgain);
+      await fadeIn(nameAgain, 200);
+
+      // Button
+      const btn = createButton(container);
+      btn.show();
+      btn.waitClick().then(() => resolveContinue());
+    },
+    waitContinue: () => continuePromise,
+  };
+}
+
+// ═══════════════════════════════════════════════════════════
+// SCENE 6: Gift Reveal
+// ═══════════════════════════════════════════════════════════
+function sceneReveal(container, glowEl) {
+  let resolveScene = null;
+  const sceneDone = new Promise(r => { resolveScene = r; });
+
+  return {
+    start: async () => {
+      // Title
+      const title = el('div', 'scene-title', '正在解锁生日礼物…');
+      container.appendChild(title);
+      await fadeIn(title, 0);
+      await new Promise(r => setTimeout(r, 500));
+
+      // Progress bar with segmented animation
+      const progressWrap = el('div', 'scene-progress');
+      const progressFill = el('div', 'scene-progress-fill');
+      progressWrap.appendChild(progressFill);
+      container.appendChild(progressWrap);
+
+      const segments = [10, 35, 67, 99, 100];
+      for (const pct of segments) {
+        await new Promise(r => setTimeout(r, 900 + Math.random() * 500));
+        progressFill.style.width = pct + '%';
+      }
+
+      // Glow at 100%
+      await new Promise(r => setTimeout(r, 400));
+      glowEl.classList.add('active');
+
+      // "礼物已准备完成"
+      await new Promise(r => setTimeout(r, 600));
+      const t1 = el('div', 'type-line');
+      container.appendChild(t1);
+      const tw1 = new Typewriter(t1, '礼物已准备完成', 70);
+      await tw1.start();
+
+      // "请查看你手中的设备"
+      await new Promise(r => setTimeout(r, 800));
+      const t2 = el('div', 'type-line');
+      container.appendChild(t2);
+      const tw2 = new Typewriter(t2, '请查看你手中的设备', 70);
+      await tw2.start();
+
+      // Pause
+      await new Promise(r => setTimeout(r, 1800));
+
+      // "这不是演示设备"
+      const t3 = el('div', 'type-line');
+      container.appendChild(t3);
+      const tw3 = new Typewriter(t3, '这不是演示设备', 75);
+      await tw3.start();
+
+      // Pause
+      await new Promise(r => setTimeout(r, 1500));
+
+      // "也不是借给你的"
+      const t4 = el('div', 'type-line');
+      container.appendChild(t4);
+      const tw4 = new Typewriter(t4, '也不是借给你的', 75);
+      await tw4.start();
+
+      // Pause
+      await new Promise(r => setTimeout(r, 1500));
+
+      // "它从一开始就是为你准备的"
+      const t5 = el('div', 'type-line');
+      container.appendChild(t5);
+      const tw5 = new Typewriter(t5, '它从一开始就是为你准备的', 70);
+      await tw5.start();
+
+      // Pause
+      await new Promise(r => setTimeout(r, 1800));
+
+      // Big reveal
+      // Clear some space by reducing earlier elements' visual weight? No, keep it.
+
+      // "林婷"
+      const bigName = el('div', 'large-text', '林婷');
+      container.appendChild(bigName);
+      await fadeIn(bigName, 0);
+
+      await new Promise(r => setTimeout(r, 600));
+
+      // "生日快乐"
+      const happyBday = el('div', 'large-text', '生日快乐');
+      container.appendChild(happyBday);
+      await fadeIn(happyBday, 200);
+
+      await new Promise(r => setTimeout(r, 800));
+
+      // Wishes
+      const wish1 = el('div', 'medium-text', '愿你继续追喜欢的剧');
+      container.appendChild(wish1);
+      await fadeIn(wish1, 200);
+
+      await new Promise(r => setTimeout(r, 500));
+
+      const wish2 = el('div', 'medium-text', '做喜欢的手工');
+      container.appendChild(wish2);
+      await fadeIn(wish2, 200);
+
+      await new Promise(r => setTimeout(r, 500));
+
+      const wish3 = el('div', 'medium-text', '过喜欢的生活');
+      container.appendChild(wish3);
+      await fadeIn(wish3, 200);
+
+      await new Promise(r => setTimeout(r, 1000));
+
+      // Gift emoji
+      const gift = el('div', 'gift-icon', '🎁');
+      container.appendChild(gift);
+      await new Promise(r => setTimeout(r, 200));
+      gift.classList.add('visible');
+
+      await new Promise(r => setTimeout(r, 800));
+
+      // "你获得了一台新的 iPad"
+      const finalText = el('div', 'medium-text', '你获得了一台新的 iPad');
+      container.appendChild(finalText);
+      await fadeIn(finalText, 100);
+
+      await new Promise(r => setTimeout(r, 2000));
+
+      // Continue button
+      const btn = createButton(container);
+      btn.show();
+      await btn.waitClick();
+
+      // Fade glow before transitioning
+      glowEl.classList.remove('active');
+      resolveScene();
+    },
+    waitContinue: () => sceneDone,
+  };
+}
+
+// ═══════════════════════════════════════════════════════════
+// SCENE 7: Ending
+// ═══════════════════════════════════════════════════════════
+function sceneEnding(container) {
+  return {
+    start: async () => {
+      // "林婷"
+      const bigName = el('div', 'large-text', '林婷');
+      container.appendChild(bigName);
+      await fadeIn(bigName, 0);
+
+      await new Promise(r => setTimeout(r, 800));
+
+      // "生日快乐"
+      const happyBday = el('div', 'large-text', '生日快乐');
+      container.appendChild(happyBday);
+      await fadeIn(happyBday, 300);
+
+      await new Promise(r => setTimeout(r, 2000));
+
+      // Small note
+      const note1 = el('div', 'small-text', '顺便说明：');
+      container.appendChild(note1);
+      await fadeIn(note1, 0);
+
+      await new Promise(r => setTimeout(r, 600));
+
+      const note2 = el('div', 'small-text', '有个人已经连续14年坚持给你过生日。');
+      container.appendChild(note2);
+      await fadeIn(note2, 300);
+
+      await new Promise(r => setTimeout(r, 700));
+
+      const note3 = el('div', 'small-text', '目前暂无停止计划。');
+      container.appendChild(note3);
+      await fadeIn(note3, 400);
+
+      await new Promise(r => setTimeout(r, 2500));
+
+      // Signature
+      const sig = el('div', 'small-text', '—— 薛梓彦');
+      container.appendChild(sig);
+      await fadeIn(sig, 0);
+
+      // That's it — the page stays on this scene
+    },
+  };
+}
+
+// ═══════════════════════════════════════════════════════════
+// MAIN: Bootstrap
+// ═══════════════════════════════════════════════════════════
+(async function main() {
+  const canvas = document.getElementById('particles');
+  const app = document.getElementById('app');
+  const glowEl = document.getElementById('glow');
+  const progressFill = document.getElementById('global-progress-fill');
+  const swipeHint = document.getElementById('swipe-hint');
+
+  // Start particles
+  new ParticleCanvas(canvas);
+
+  // Scene manager
+  const sm = new SceneManager(app, glowEl, progressFill, swipeHint);
+
+  // ── SCENE 1: Boot ──
+  sm.sceneIndex = 0;
+  await sm.goTo('boot', (el) => sceneBoot(el));
+
+  // Tap to skip typewriter
+  const tapHandler1 = () => { if (sm.currentController) sm.currentController.handleTap(); };
+  app.addEventListener('click', tapHandler1);
+  await sm.currentController.waitContinue();
+  app.removeEventListener('click', tapHandler1);
+
+  // ── SCENE 2: Profile ──
+  sm.sceneIndex = 1;
+  await sm.goTo('profile', (el) => sceneProfile(el));
+
+  const tapHandler2 = () => { if (sm.currentController) sm.currentController.handleTap(); };
+  app.addEventListener('click', tapHandler2);
+  await sm.currentController.waitContinue();
+  app.removeEventListener('click', tapHandler2);
+
+  // ── SCENE 3: Archive ──
+  sm.sceneIndex = 2;
+  await sm.goTo('archive', (el) => sceneArchive(el));
+
+  const tapHandler3 = () => { if (sm.currentController) sm.currentController.handleTap(); };
+  app.addEventListener('click', tapHandler3);
+  await sm.currentController.waitContinue();
+  app.removeEventListener('click', tapHandler3);
+
+  // ── SCENE 4: Quiz ──
+  sm.sceneIndex = 3;
+  await sm.goTo('quiz', (el) => sceneQuiz(el, swipeHint));
+  await sm.currentController.waitContinue();
+
+  // ── SCENE 5: Verify ──
+  sm.sceneIndex = 4;
+  await sm.goTo('verify', (el) => sceneVerify(el));
+  await sm.currentController.waitContinue();
+
+  // ── SCENE 6: Reveal ──
+  sm.sceneIndex = 5;
+  await sm.goTo('reveal', (el) => sceneReveal(el, glowEl));
+  await sm.currentController.waitContinue();
+
+  // ── SCENE 7: Ending ──
+  sm.sceneIndex = 6;
+  await sm.goTo('ending', (el) => sceneEnding(el));
+  // No continue — this is the final scene
+  sm.updateGlobalProgress();
+
+})();
+</script>
+
+</body>
+</html>
