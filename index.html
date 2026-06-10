@@ -37,18 +37,45 @@
     -webkit-overflow-scrolling: none;
   }
 
-  /* ── Castle night background ── */
+  /* ── Cosmic Nebula + Galaxy background ── */
   #nebula {
     position: fixed; inset: 0; z-index: 0;
     pointer-events: none;
     background:
-      /* Warm castle window glow at bottom center */
-      radial-gradient(ellipse 40% 30% at 50% 85%, rgba(255,200,130,0.08) 0%, rgba(255,180,100,0.03) 40%, transparent 70%),
-      /* Royal purple night sky */
-      radial-gradient(ellipse 60% 50% at 25% 20%, rgba(120,60,180,0.10) 0%, transparent 55%),
-      radial-gradient(ellipse 50% 45% at 70% 30%, rgba(80,50,160,0.07) 0%, transparent 50%),
-      /* Champagne shimmer top */
-      radial-gradient(ellipse 35% 25% at 50% 5%, rgba(255,220,160,0.04) 0%, transparent 50%);
+      /* Core — bright nebula center */
+      radial-gradient(ellipse 45% 35% at 30% 40%, rgba(160,80,220,0.18) 0%, rgba(100,40,180,0.08) 35%, transparent 65%),
+      radial-gradient(ellipse 40% 30% at 65% 35%, rgba(60,120,240,0.14) 0%, rgba(40,80,200,0.06) 40%, transparent 70%),
+      /* Teal/green nebula accent */
+      radial-gradient(ellipse 25% 20% at 50% 55%, rgba(40,180,200,0.10) 0%, rgba(20,120,160,0.04) 35%, transparent 60%),
+      /* Deep purple haze */
+      radial-gradient(ellipse 55% 45% at 20% 60%, rgba(100,40,180,0.12) 0%, rgba(60,20,120,0.05) 40%, transparent 70%),
+      radial-gradient(ellipse 50% 40% at 80% 70%, rgba(80,30,160,0.10) 0%, rgba(40,10,100,0.04) 40%, transparent 65%),
+      /* Warm gold castle glow at bottom center */
+      radial-gradient(ellipse 35% 25% at 50% 88%, rgba(255,200,120,0.10) 0%, rgba(255,170,90,0.04) 35%, transparent 60%),
+      /* Top galaxy shimmer */
+      radial-gradient(ellipse 40% 20% at 50% 8%, rgba(200,180,255,0.08) 0%, rgba(160,140,220,0.03) 40%, transparent 60%),
+      /* Subtle star field texture — tiny dots via repeating gradient */
+      radial-gradient(1px 1px at 15% 25%, rgba(255,255,255,0.5) 0%, transparent 100%),
+      radial-gradient(1px 1px at 28% 42%, rgba(255,255,255,0.4) 0%, transparent 100%),
+      radial-gradient(1px 1px at 42% 18%, rgba(255,255,255,0.6) 0%, transparent 100%),
+      radial-gradient(1px 1px at 55% 35%, rgba(255,255,255,0.3) 0%, transparent 100%),
+      radial-gradient(1px 1px at 68% 28%, rgba(255,255,255,0.5) 0%, transparent 100%),
+      radial-gradient(1px 1px at 78% 48%, rgba(255,255,255,0.4) 0%, transparent 100%),
+      radial-gradient(1px 1px at 88% 22%, rgba(255,255,255,0.6) 0%, transparent 100%),
+      radial-gradient(1px 1px at 10% 55%, rgba(255,255,255,0.35) 0%, transparent 100%),
+      radial-gradient(1px 1px at 33% 65%, rgba(255,255,255,0.45) 0%, transparent 100%),
+      radial-gradient(1px 1px at 60% 58%, rgba(255,255,255,0.3) 0%, transparent 100%),
+      radial-gradient(1px 1px at 72% 72%, rgba(255,255,255,0.5) 0%, transparent 100%),
+      radial-gradient(1px 1px at 45% 75%, rgba(255,255,255,0.4) 0%, transparent 100%),
+      radial-gradient(1px 1px at 22% 78%, rgba(255,255,255,0.35) 0%, transparent 100%),
+      radial-gradient(1px 1px at 85% 55%, rgba(255,255,255,0.45) 0%, transparent 100%);
+    animation: nebula-drift 20s ease-in-out infinite;
+  }
+  @keyframes nebula-drift {
+    0%, 100% { opacity: 0.9; }
+    25% { opacity: 1; }
+    50% { opacity: 0.85; }
+    75% { opacity: 0.95; }
   }
 
   /* ── Particle Canvas ── */
@@ -428,23 +455,26 @@ class ParticleCanvas {
 
   init() {
     this.particles = [];
-    // Magic dust: ~55 floating particles
-    for (let i = 0; i < 55; i++) {
+    // Magic dust + galaxy nebula: ~75 particles
+    const totalDust = 55; // standard sparkle dust
+    const nebulaBlobs = 20; // larger, softer nebula blobs
+
+    for (let i = 0; i < totalDust; i++) {
       const kind = Math.random();
       let color, size, speed;
-      if (kind < 0.5) {
+      if (kind < 0.45) {
         // Champagne gold sparkle
         color = `rgba(255,${210 + Math.random() * 35},${120 + Math.random() * 50},`;
         size = Math.random() * 1.5 + 0.5;
         speed = 0.2 + Math.random() * 0.35;
-      } else if (kind < 0.82) {
+      } else if (kind < 0.75) {
         // Silver-white star
         color = `rgba(${230 + Math.random() * 25},${225 + Math.random() * 30},${215 + Math.random() * 40},`;
         size = Math.random() * 1.8 + 0.6;
         speed = 0.15 + Math.random() * 0.3;
       } else {
-        // Royal purple shimmer
-        color = `rgba(${180 + Math.random() * 40},${130 + Math.random() * 30},${200 + Math.random() * 55},`;
+        // Purple-blue cosmic shimmer
+        color = `rgba(${160 + Math.random() * 60},${120 + Math.random() * 40},${200 + Math.random() * 55},`;
         size = Math.random() * 1.2 + 0.3;
         speed = 0.25 + Math.random() * 0.35;
       }
@@ -452,12 +482,37 @@ class ParticleCanvas {
         x: Math.random() * this.w,
         y: Math.random() * this.h,
         vx: (Math.random() - 0.5) * speed,
-        vy: (Math.random() - 0.5) * speed * 0.7 - 0.1, // slight upward drift
+        vy: (Math.random() - 0.5) * speed * 0.7 - 0.1,
         r: size,
         baseOpacity: 0.08 + Math.random() * 0.35,
         colorPrefix: color,
-        twinkleSpeed: 0.02 + Math.random() * 0.06, // speed of brightness oscillation
+        twinkleSpeed: 0.02 + Math.random() * 0.06,
         twinkleOffset: Math.random() * Math.PI * 2,
+        isNebula: false,
+      });
+    }
+
+    // Larger nebula blobs — slow, soft, galaxy-cloud feel
+    for (let i = 0; i < nebulaBlobs; i++) {
+      const colors = [
+        `rgba(120,50,200,`,
+        `rgba(60,100,230,`,
+        `rgba(40,160,200,`,
+        `rgba(100,40,170,`,
+        `rgba(70,120,210,`,
+      ];
+      const c = colors[Math.floor(Math.random() * colors.length)];
+      this.particles.push({
+        x: Math.random() * this.w,
+        y: Math.random() * this.h,
+        vx: (Math.random() - 0.5) * 0.12,
+        vy: (Math.random() - 0.5) * 0.10 - 0.04,
+        r: 2 + Math.random() * 5,
+        baseOpacity: 0.04 + Math.random() * 0.08,
+        colorPrefix: c,
+        twinkleSpeed: 0.005 + Math.random() * 0.015,
+        twinkleOffset: Math.random() * Math.PI * 2,
+        isNebula: true,
       });
     }
   }
@@ -517,21 +572,34 @@ class ParticleCanvas {
       const twinkle = Math.sin(this.frame * p.twinkleSpeed + p.twinkleOffset) * 0.3 + 0.7;
       const alpha = p.baseOpacity * twinkle;
 
-      // Draw soft glow halo
-      this.ctx.beginPath();
-      this.ctx.arc(p.x, p.y, p.r * 3, 0, Math.PI * 2);
-      this.ctx.fillStyle = p.colorPrefix + (alpha * 0.12) + ')';
-      this.ctx.fill();
+      if (p.isNebula) {
+        // Nebula blob — large soft glow, no sharp core
+        const nebulaSize = p.r * 12;
+        const nebulaGrad = this.ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, nebulaSize);
+        nebulaGrad.addColorStop(0, p.colorPrefix + (alpha * 0.7) + ')');
+        nebulaGrad.addColorStop(0.3, p.colorPrefix + (alpha * 0.25) + ')');
+        nebulaGrad.addColorStop(1, 'transparent');
+        this.ctx.beginPath();
+        this.ctx.arc(p.x, p.y, nebulaSize, 0, Math.PI * 2);
+        this.ctx.fillStyle = nebulaGrad;
+        this.ctx.fill();
+      } else {
+        // Draw soft glow halo
+        this.ctx.beginPath();
+        this.ctx.arc(p.x, p.y, p.r * 3, 0, Math.PI * 2);
+        this.ctx.fillStyle = p.colorPrefix + (alpha * 0.12) + ')';
+        this.ctx.fill();
 
-      // Draw core particle
-      this.ctx.beginPath();
-      this.ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-      this.ctx.fillStyle = p.colorPrefix + (alpha * 1.0) + ')';
-      this.ctx.fill();
+        // Draw core particle
+        this.ctx.beginPath();
+        this.ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        this.ctx.fillStyle = p.colorPrefix + (alpha * 1.0) + ')';
+        this.ctx.fill();
 
-      // Occasionally draw a star sparkle for brighter particles
-      if (twinkle > 0.9 && alpha > 0.25) {
-        this.drawStar(p.x, p.y, p.r * 6, alpha * 0.6);
+        // Occasionally draw a star sparkle for brighter particles
+        if (twinkle > 0.9 && alpha > 0.25) {
+          this.drawStar(p.x, p.y, p.r * 6, alpha * 0.6);
+        }
       }
     }
 
@@ -558,9 +626,10 @@ class ParticleCanvas {
       this.ctx.stroke();
     }
 
-    // Mouse / touch — attract nearby particles with warm glow
+    // Mouse / touch — attract nearby particles with warm glow (skip nebula blobs)
     for (let i = 0; i < pts.length; i++) {
       const p = pts[i];
+      if (p.isNebula) continue;
       const mdx = p.x - this.mouse.x;
       const mdy = p.y - this.mouse.y;
       const mdist = Math.sqrt(mdx * mdx + mdy * mdy);
@@ -583,9 +652,11 @@ class ParticleCanvas {
       }
     }
 
-    // Subtle connections between nearby particles
+    // Subtle connections between nearby particles (skip nebula blobs)
     for (let i = 0; i < pts.length; i++) {
+      if (pts[i].isNebula) continue;
       for (let j = i + 1; j < pts.length; j++) {
+        if (pts[j].isNebula) continue;
         const a = pts[i], b = pts[j];
         const dx = a.x - b.x, dy = a.y - b.y;
         const dist = Math.sqrt(dx * dx + dy * dy);
