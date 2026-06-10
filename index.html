@@ -678,7 +678,7 @@ class ParticleCanvas {
 
 // ── Typewriter ──
 class Typewriter {
-  constructor(element, text, speed = 42) {
+  constructor(element, text, speed = 25) {
     this.el = element;
     this.fullText = text;
     this.speed = speed;
@@ -903,7 +903,7 @@ function sceneBoot(container) {
     '正在启动生日协议…',
   ];
 
-  const seq = createTypedSequence(container, lines, 70, 700);
+  const seq = createTypedSequence(container, lines, 35, 400);
   const btn = createButton(container);
   let started = false;
 
@@ -943,7 +943,7 @@ function sceneProfile(container) {
   const spacer = el('div', 'spacer-20');
   container.appendChild(spacer);
 
-  const seq = createTypedSequence(container, lines, 70, 800);
+  const seq = createTypedSequence(container, lines, 35, 450);
   const btn = createButton(container);
   let started = false;
 
@@ -982,7 +982,7 @@ function sceneArchive(container) {
   const spacer = el('div', 'spacer-20');
   container.appendChild(spacer);
 
-  const seq = createTypedSequence(container, lines, 70, 750);
+  const seq = createTypedSequence(container, lines, 35, 400);
   const btn = createButton(container);
   let started = false;
 
@@ -1198,35 +1198,20 @@ function sceneVerify(container) {
       container.appendChild(title);
       await fadeIn(title, 0);
 
-      // Progress bar — 5 blocks, fill one by one
-      const progressWrap = el('div', 'scene-progress');
-      const totalBlocks = 5;
-      const blocks = [];
-      for (let i = 0; i < totalBlocks; i++) {
-        const blk = el('div', 'sp-block');
-        progressWrap.appendChild(blk);
-        blocks.push(blk);
-      }
-      container.appendChild(progressWrap);
-
-      // Animate blocks filling in sequence
-      for (let i = 0; i < totalBlocks; i++) {
-        await new Promise(r => setTimeout(r, 300));
-        blocks[i].classList.add('filled');
-      }
+      await new Promise(r => setTimeout(r, 600));
 
       // "正在比对特征…"
       await new Promise(r => setTimeout(r, 1000));
       const text1 = el('div', 'type-line', '正在比对特征…');
       container.appendChild(text1);
-      const tw1 = new Typewriter(text1, '正在比对特征…', 70);
+      const tw1 = new Typewriter(text1, '正在比对特征…', 35);
       await tw1.start();
 
       // "匹配成功"
       await new Promise(r => setTimeout(r, 600));
       const text2 = el('div', 'type-line');
       container.appendChild(text2);
-      const tw2 = new Typewriter(text2, '匹配成功', 65);
+      const tw2 = new Typewriter(text2, '匹配成功', 30);
       await tw2.start();
 
       // Pause
@@ -1272,40 +1257,20 @@ function sceneReveal(container, glowEl) {
       const title = el('div', 'scene-title', '🎀  正在解锁生日礼物…');
       container.appendChild(title);
       await fadeIn(title, 0);
-      await new Promise(r => setTimeout(r, 500));
-
-      // Progress bar — 5 blocks, fill one by one with dramatic pauses
-      const progressWrap = el('div', 'scene-progress');
-      const totalBlocks = 5;
-      const rblocks = [];
-      for (let i = 0; i < totalBlocks; i++) {
-        const blk = el('div', 'sp-block');
-        progressWrap.appendChild(blk);
-        rblocks.push(blk);
-      }
-      container.appendChild(progressWrap);
-
-      for (let i = 0; i < totalBlocks; i++) {
-        await new Promise(r => setTimeout(r, 900 + Math.random() * 500));
-        rblocks[i].classList.add('filled');
-      }
-
-      // Glow at 100%
-      await new Promise(r => setTimeout(r, 400));
-      glowEl.classList.add('active');
+      await new Promise(r => setTimeout(r, 600));
 
       // "礼物已准备完成"
       await new Promise(r => setTimeout(r, 600));
       const t1 = el('div', 'type-line');
       container.appendChild(t1);
-      const tw1 = new Typewriter(t1, '礼物已准备完成', 70);
+      const tw1 = new Typewriter(t1, '礼物已准备完成', 35);
       await tw1.start();
 
       // "请查看你手中的设备"
       await new Promise(r => setTimeout(r, 800));
       const t2 = el('div', 'type-line');
       container.appendChild(t2);
-      const tw2 = new Typewriter(t2, '请查看你手中的设备', 70);
+      const tw2 = new Typewriter(t2, '请查看你手中的设备', 35);
       await tw2.start();
 
       // Pause
@@ -1314,7 +1279,7 @@ function sceneReveal(container, glowEl) {
       // "这不是演示设备"
       const t3 = el('div', 'type-line');
       container.appendChild(t3);
-      const tw3 = new Typewriter(t3, '这台不是演示设备', 75);
+      const tw3 = new Typewriter(t3, '这台不是演示设备', 35);
       await tw3.start();
 
       // Pause
@@ -1323,7 +1288,7 @@ function sceneReveal(container, glowEl) {
       // "也不是借给你的"
       const t4 = el('div', 'type-line');
       container.appendChild(t4);
-      const tw4 = new Typewriter(t4, '也不是借给你玩的', 75);
+      const tw4 = new Typewriter(t4, '也不是借给你玩的', 35);
       await tw4.start();
 
       // Pause
@@ -1332,7 +1297,7 @@ function sceneReveal(container, glowEl) {
       // "它从一开始就是为你准备的"
       const t5 = el('div', 'type-line');
       container.appendChild(t5);
-      const tw5 = new Typewriter(t5, '它从一开始就是为你准备的', 70);
+      const tw5 = new Typewriter(t5, '它从一开始就是为你准备的', 35);
       await tw5.start();
 
       // Pause
