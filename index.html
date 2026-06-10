@@ -656,7 +656,7 @@ class ParticleCanvas {
 
 // ── Typewriter ──
 class Typewriter {
-  constructor(element, text, speed = 25) {
+  constructor(element, text, speed = 15) {
     this.el = element;
     this.fullText = text;
     this.speed = speed;
@@ -862,7 +862,7 @@ function sceneBoot(container) {
     '正在启动生日协议…',
   ];
 
-  const seq = createTypedSequence(container, lines, 35, 400);
+  const seq = createTypedSequence(container, lines, 18, 250);
   const btn = createButton(container);
   let started = false;
 
@@ -902,7 +902,7 @@ function sceneProfile(container) {
   const spacer = el('div', 'spacer-20');
   container.appendChild(spacer);
 
-  const seq = createTypedSequence(container, lines, 35, 450);
+  const seq = createTypedSequence(container, lines, 18, 250);
   const btn = createButton(container);
   let started = false;
 
@@ -941,7 +941,7 @@ function sceneArchive(container) {
   const spacer = el('div', 'spacer-20');
   container.appendChild(spacer);
 
-  const seq = createTypedSequence(container, lines, 35, 400);
+  const seq = createTypedSequence(container, lines, 18, 250);
   const btn = createButton(container);
   let started = false;
 
@@ -1163,14 +1163,14 @@ function sceneVerify(container) {
       await new Promise(r => setTimeout(r, 1000));
       const text1 = el('div', 'type-line', '正在比对特征…');
       container.appendChild(text1);
-      const tw1 = new Typewriter(text1, '正在比对特征…', 35);
+      const tw1 = new Typewriter(text1, '正在比对特征…', 18);
       await tw1.start();
 
       // "匹配成功"
       await new Promise(r => setTimeout(r, 600));
       const text2 = el('div', 'type-line');
       container.appendChild(text2);
-      const tw2 = new Typewriter(text2, '匹配成功', 30);
+      const tw2 = new Typewriter(text2, '匹配成功', 15);
       await tw2.start();
 
       // Pause
@@ -1222,14 +1222,14 @@ function sceneReveal(container, glowEl) {
       await new Promise(r => setTimeout(r, 600));
       const t1 = el('div', 'type-line');
       container.appendChild(t1);
-      const tw1 = new Typewriter(t1, '礼物已准备完成', 35);
+      const tw1 = new Typewriter(t1, '礼物已准备完成', 18);
       await tw1.start();
 
       // "请查看你手中的设备"
       await new Promise(r => setTimeout(r, 800));
       const t2 = el('div', 'type-line');
       container.appendChild(t2);
-      const tw2 = new Typewriter(t2, '请查看你手中的设备', 35);
+      const tw2 = new Typewriter(t2, '请查看你手中的设备', 18);
       await tw2.start();
 
       // Pause
@@ -1238,7 +1238,7 @@ function sceneReveal(container, glowEl) {
       // "这不是演示设备"
       const t3 = el('div', 'type-line');
       container.appendChild(t3);
-      const tw3 = new Typewriter(t3, '这台不是演示设备', 35);
+      const tw3 = new Typewriter(t3, '这台不是演示设备', 18);
       await tw3.start();
 
       // Pause
@@ -1247,7 +1247,7 @@ function sceneReveal(container, glowEl) {
       // "也不是借给你的"
       const t4 = el('div', 'type-line');
       container.appendChild(t4);
-      const tw4 = new Typewriter(t4, '也不是借给你玩的', 35);
+      const tw4 = new Typewriter(t4, '也不是借给你玩的', 18);
       await tw4.start();
 
       // Pause
@@ -1256,7 +1256,7 @@ function sceneReveal(container, glowEl) {
       // "它从一开始就是为你准备的"
       const t5 = el('div', 'type-line');
       container.appendChild(t5);
-      const tw5 = new Typewriter(t5, '它从一开始就是为你准备的', 35);
+      const tw5 = new Typewriter(t5, '它从一开始就是为你准备的', 18);
       await tw5.start();
 
       // Pause
@@ -1422,6 +1422,12 @@ function sceneEnding(container) {
 function sceneFarewell(container) {
   return {
     start: async () => {
+      const line0 = el('div', 'small-text', '连按三下电源键退出引导模式吧~');
+      container.appendChild(line0);
+      await fadeIn(line0, 0);
+
+      await new Promise(r => setTimeout(r, 1200));
+
       const line1 = el('div', 'medium-text', '从底部上滑开始享用你的新iPad吧');
       container.appendChild(line1);
       await fadeIn(line1, 0);
