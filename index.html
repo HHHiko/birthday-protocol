@@ -932,10 +932,12 @@ function sceneProfile(container) {
   const lines = [
     '喜欢追剧。',
     '喜欢做手工。',
-    '会为了一个小细节反复修改。',
-    '偶尔嘴硬。',
+    '经常嘴硬。',
     '但心很软。',
-    '拥有自己的审美标准。',
+    '虽然有时内耗',
+    '但是还是很可爱',
+    '不会哄人',
+    '但是很会陪伴',
   ];
 
   const spacer = el('div', 'spacer-20');
@@ -972,10 +974,9 @@ function sceneArchive(container) {
   const lines = [
     '年龄：保密',
     '魅力值：持续增长',
-    '手工技能：高级',
     '追剧经验：专家级',
-    '今日身份：寿星 👑',
-    '今日权限：无限开心',
+    '今日身份：寿星公主 👑',
+    '今日权限：无限开心+肆意妄为',
   ];
 
   const spacer = el('div', 'spacer-20');
@@ -1009,10 +1010,10 @@ function sceneQuiz(container, swipeHint) {
   const quizData = [
     {
       question: '今天最重要的事情是什么？',
-      options: ['A  上班', 'B  操心', 'C  过生日'],
+      options: ['A  吃饭', 'B  睡觉', 'C  过生日'],
       correct: 2,
-      feedback: '回答正确。今天你唯一的工作，就是过生日。',
-      wrongFeedback: '不对。今天不上班，不操心，只过生日。',
+      feedback: '回答正确。今天你唯一的任务，就是过生日。',
+      wrongFeedback: '不对。今天不吃饭，不睡觉，只过生日。',
     },
     {
       question: '今天是否允许自己开心一点？',
@@ -1231,8 +1232,8 @@ function sceneVerify(container) {
       // Pause
       await new Promise(r => setTimeout(r, 1000));
 
-      // Large "林婷"
-      const bigName = el('div', 'large-text', '林婷');
+      // Large "今日生日主角"
+      const bigName = el('div', 'large-text', '今日生日主角');
       container.appendChild(bigName);
       await fadeIn(bigName, 0);
 
@@ -1240,12 +1241,12 @@ function sceneVerify(container) {
       await new Promise(r => setTimeout(r, 3000));
 
       // Fade out large name slightly, show subtitle
-      const subtitle = el('div', 'medium-text', '今日生日主角');
+      const subtitle = el('div', 'medium-text', '我的宝宝');
       container.appendChild(subtitle);
       await fadeIn(subtitle, 400);
 
       // Name again
-      const nameAgain = el('div', 'large-text', '林婷');
+      const nameAgain = el('div', 'large-text', '林婷宝宝');
       container.appendChild(nameAgain);
       await fadeIn(nameAgain, 200);
 
@@ -1313,7 +1314,7 @@ function sceneReveal(container, glowEl) {
       // "这不是演示设备"
       const t3 = el('div', 'type-line');
       container.appendChild(t3);
-      const tw3 = new Typewriter(t3, '这不是演示设备', 75);
+      const tw3 = new Typewriter(t3, '这台不是演示设备', 75);
       await tw3.start();
 
       // Pause
@@ -1322,7 +1323,7 @@ function sceneReveal(container, glowEl) {
       // "也不是借给你的"
       const t4 = el('div', 'type-line');
       container.appendChild(t4);
-      const tw4 = new Typewriter(t4, '也不是借给你的', 75);
+      const tw4 = new Typewriter(t4, '也不是借给你玩的', 75);
       await tw4.start();
 
       // Pause
@@ -1341,14 +1342,14 @@ function sceneReveal(container, glowEl) {
       // Clear some space by reducing earlier elements' visual weight? No, keep it.
 
       // "林婷"
-      const bigName = el('div', 'large-text', '🌟 林婷');
+      const bigName = el('div', 'large-text', '🌟 我的宝宝');
       container.appendChild(bigName);
       await fadeIn(bigName, 0);
 
       await new Promise(r => setTimeout(r, 600));
 
       // "生日快乐"
-      const happyBday = el('div', 'large-text', '生日快乐 ✨');
+      const happyBday = el('div', 'large-text', '祝你生日快乐 ✨');
       container.appendChild(happyBday);
       await fadeIn(happyBday, 200);
 
@@ -1371,6 +1372,18 @@ function sceneReveal(container, glowEl) {
       container.appendChild(wish3);
       await fadeIn(wish3, 200);
 
+      await new Promise(r => setTimeout(r, 500));
+
+      const wish4 = el('div', 'medium-text', '不需要内耗');
+      container.appendChild(wish4);
+      await fadeIn(wish4, 200);
+
+      await new Promise(r => setTimeout(r, 500));
+
+      const wish5 = el('div', 'medium-text', '不舒服就要说出来');
+      container.appendChild(wish5);
+      await fadeIn(wish5, 200);
+
       await new Promise(r => setTimeout(r, 1000));
 
       // Gift emoji
@@ -1382,7 +1395,7 @@ function sceneReveal(container, glowEl) {
       await new Promise(r => setTimeout(r, 800));
 
       // "你获得了一台新的 iPad"
-      const finalText = el('div', 'medium-text', '你获得了一台新的 iPad');
+      const finalText = el('div', 'medium-text', '恭喜你获得了一台新的 iPad🎁');
       container.appendChild(finalText);
       await fadeIn(finalText, 100);
 
@@ -1408,7 +1421,7 @@ function sceneEnding(container) {
   return {
     start: async () => {
       // "林婷"
-      const bigName = el('div', 'large-text', '✨ 林婷 ✨');
+      const bigName = el('div', 'large-text', '✨ 宝宝 ✨');
       container.appendChild(bigName);
       await fadeIn(bigName, 0);
 
@@ -1434,16 +1447,17 @@ function sceneEnding(container) {
 
       await new Promise(r => setTimeout(r, 700));
 
-      const note3 = el('div', 'small-text', '目前暂无停止计划。');
+      const note3 = el('div', 'small-text', '目前暂无停止计划，嘻嘻🌙');
       container.appendChild(note3);
       await fadeIn(note3, 400);
 
-      await new Promise(r => setTimeout(r, 2500));
+      await new Promise(r => setTimeout(r, 700));
 
-      // Signature
-      const sig = el('div', 'small-text', '🌙  —— 薛梓彦');
-      container.appendChild(sig);
-      await fadeIn(sig, 0);
+      const note4 = el('div', 'small-text', '预计陪你过多67个生日~');
+      container.appendChild(note4);
+      await fadeIn(note4, 400);
+
+      await new Promise(r => setTimeout(r, 2500));
 
       // That's it — the page stays on this scene
     },
