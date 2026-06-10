@@ -744,7 +744,7 @@ class SceneManager {
     this.currentScene = null;
     this.currentController = null;
     this.sceneIndex = 0;
-    this.totalScenes = 7;
+    this.totalScenes = 8;
     this.transitioning = false;
     this.sceneEl = null;
     // Initialize progress blocks
@@ -1338,17 +1338,37 @@ function sceneReveal(container, glowEl) {
       // Pause
       await new Promise(r => setTimeout(r, 1800));
 
-      // Big reveal
-      // Clear some space by reducing earlier elements' visual weight? No, keep it.
+      // Continue button
+      const btn = createButton(container);
+      btn.show();
+      await btn.waitClick();
 
-      // "林婷"
+      resolveScene();
+    },
+    waitContinue: () => sceneDone,
+  };
+}
+
+// ═══════════════════════════════════════════════════════════
+// SCENE 7: Blessing
+// ═══════════════════════════════════════════════════════════
+function sceneBlessing(container, glowEl) {
+  let resolveScene = null;
+  const sceneDone = new Promise(r => { resolveScene = r; });
+
+  return {
+    start: async () => {
+      // Glow
+      glowEl.classList.add('active');
+
+      // 🌟 我的宝宝
       const bigName = el('div', 'large-text', '🌟 我的宝宝');
       container.appendChild(bigName);
       await fadeIn(bigName, 0);
 
       await new Promise(r => setTimeout(r, 600));
 
-      // "生日快乐"
+      // 祝你生日快乐
       const happyBday = el('div', 'large-text', '祝你生日快乐 ✨');
       container.appendChild(happyBday);
       await fadeIn(happyBday, 200);
@@ -1394,7 +1414,7 @@ function sceneReveal(container, glowEl) {
 
       await new Promise(r => setTimeout(r, 800));
 
-      // "你获得了一台新的 iPad"
+      // 恭喜获得 iPad
       const finalText = el('div', 'medium-text', '恭喜你获得了一台新的 iPad🎁');
       container.appendChild(finalText);
       await fadeIn(finalText, 100);
@@ -1415,7 +1435,7 @@ function sceneReveal(container, glowEl) {
 }
 
 // ═══════════════════════════════════════════════════════════
-// SCENE 7: Ending
+// SCENE 8: Ending
 // ═══════════════════════════════════════════════════════════
 function sceneEnding(container) {
   return {
@@ -1523,8 +1543,13 @@ function sceneEnding(container) {
   await sm.goTo('reveal', (el) => sceneReveal(el, glowEl));
   await sm.currentController.waitContinue();
 
-  // ── SCENE 7: Ending ──
+  // ── SCENE 7: Blessing ──
   sm.sceneIndex = 6;
+  await sm.goTo('blessing', (el) => sceneBlessing(el, glowEl));
+  await sm.currentController.waitContinue();
+
+  // ── SCENE 8: Ending ──
+  sm.sceneIndex = 7;
   await sm.goTo('ending', (el) => sceneEnding(el));
   // No continue — this is the final scene
   sm.updateGlobalProgress();
