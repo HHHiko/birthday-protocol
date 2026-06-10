@@ -794,6 +794,16 @@ function fadeIn(element, delay = 0) {
   });
 }
 
+// ── Global skip helper — any scene can use `await wait(ms)` for skippable pauses ──
+let _skipResolve = null;
+function wait(ms) {
+  return new Promise(r => {
+    _skipResolve = r;
+    setTimeout(() => { if (_skipResolve === r) _skipResolve = null; r(); }, ms);
+  });
+}
+function triggerSkip() { if (_skipResolve) { const r = _skipResolve; _skipResolve = null; r(); } }
+
 // ── Helper: Create typewriter line with auto-sequence ──
 function createTypedSequence(container, lines, speed = 42, lineDelay = 300) {
   const lineEls = [];
@@ -809,25 +819,45 @@ function createTypedSequence(container, lines, speed = 42, lineDelay = 300) {
   let currentIdx = 0;
   let resolveAll = null;
   let allDone = false;
+  let delayTimer = null;
+  let skipDelay = false;
   const done = new Promise(r => { resolveAll = r; });
 
-  async function playNext() {
-    if (currentIdx >= tws.length) {
+  async function showLine(idx) {
+    if (idx >= tws.length) {
       allDone = true;
       resolveAll();
       return;
     }
-    await tws[currentIdx].start();
-    currentIdx++;
-    await new Promise(r => setTimeout(r, lineDelay));
-    playNext();
+    currentIdx = idx;
+    skipDelay = false;
+    await tws[idx].start();
+    // If skip was called during typing, skip the delay too
+    if (skipDelay) {
+      skipDelay = false;
+      showLine(idx + 1);
+      return;
+    }
+    delayTimer = setTimeout(() => {
+      delayTimer = null;
+      showLine(idx + 1);
+    }, lineDelay);
   }
 
   return {
-    start: () => { playNext(); return done; },
-    skip: () => {
-      // Only skip the CURRENT line — remaining lines still get typewriter
+    start: () => { showLine(0); return done; },
+    advance: () => {
+      if (allDone) return;
+      // During delay — cancel it and go to next immediately
+      if (delayTimer) {
+        clearTimeout(delayTimer);
+        delayTimer = null;
+        showLine(currentIdx + 1);
+        return;
+      }
+      // During typing — complete current AND skip upcoming delay
       if (currentIdx < tws.length && tws[currentIdx].running) {
+        skipDelay = true;
         tws[currentIdx].skip();
       }
     },
@@ -874,7 +904,7 @@ function sceneBoot(container) {
     },
     handleTap: () => {
       if (!started) return;
-      seq.skip();
+      seq.advance();
       if (seq.isDone()) btn.show();
     },
     waitContinue: () => btn.waitClick(),
@@ -910,13 +940,13 @@ function sceneProfile(container) {
     start: async () => {
       started = true;
       fadeIn(title, 200);
-      await new Promise(r => setTimeout(r, 800));
+      await wait(800);
       await seq.start();
       btn.show();
     },
     handleTap: () => {
       if (!started) return;
-      seq.skip();
+      seq.advance();
       if (seq.isDone()) btn.show();
     },
     waitContinue: () => btn.waitClick(),
@@ -949,13 +979,13 @@ function sceneArchive(container) {
     start: async () => {
       started = true;
       fadeIn(title, 200);
-      await new Promise(r => setTimeout(r, 800));
+      await wait(800);
       await seq.start();
       btn.show();
     },
     handleTap: () => {
       if (!started) return;
-      seq.skip();
+      seq.advance();
       if (seq.isDone()) btn.show();
     },
     waitContinue: () => btn.waitClick(),
@@ -1157,24 +1187,24 @@ function sceneVerify(container) {
       container.appendChild(title);
       await fadeIn(title, 0);
 
-      await new Promise(r => setTimeout(r, 600));
+      await wait(600);
 
       // "正在比对特征…"
-      await new Promise(r => setTimeout(r, 1000));
+      await wait(1000);
       const text1 = el('div', 'type-line', '正在比对特征…');
       container.appendChild(text1);
       const tw1 = new Typewriter(text1, '正在比对特征…', 18);
       await tw1.start();
 
       // "匹配成功"
-      await new Promise(r => setTimeout(r, 600));
+      await wait(600);
       const text2 = el('div', 'type-line');
       container.appendChild(text2);
       const tw2 = new Typewriter(text2, '匹配成功', 15);
       await tw2.start();
 
       // Pause
-      await new Promise(r => setTimeout(r, 1000));
+      await wait(1000);
 
       // Large "今日生日主角"
       const bigName = el('div', 'large-text', '今日生日主角');
@@ -1182,7 +1212,7 @@ function sceneVerify(container) {
       await fadeIn(bigName, 0);
 
       // Stay 3 seconds
-      await new Promise(r => setTimeout(r, 3000));
+      await wait(3000);
 
       // Fade out large name slightly, show subtitle
       const subtitle = el('div', 'medium-text', '我的宝宝');
@@ -1216,24 +1246,24 @@ function sceneReveal(container, glowEl) {
       const title = el('div', 'scene-title', '🎀  正在解锁生日礼物…');
       container.appendChild(title);
       await fadeIn(title, 0);
-      await new Promise(r => setTimeout(r, 600));
+      await wait(600);
 
       // "礼物已准备完成"
-      await new Promise(r => setTimeout(r, 600));
+      await wait(600);
       const t1 = el('div', 'type-line');
       container.appendChild(t1);
       const tw1 = new Typewriter(t1, '礼物已准备完成', 18);
       await tw1.start();
 
       // "请查看你手中的设备"
-      await new Promise(r => setTimeout(r, 800));
+      await wait(800);
       const t2 = el('div', 'type-line');
       container.appendChild(t2);
       const tw2 = new Typewriter(t2, '请查看你手中的设备', 18);
       await tw2.start();
 
       // Pause
-      await new Promise(r => setTimeout(r, 1800));
+      await wait(1800);
 
       // "这不是演示设备"
       const t3 = el('div', 'type-line');
@@ -1242,7 +1272,7 @@ function sceneReveal(container, glowEl) {
       await tw3.start();
 
       // Pause
-      await new Promise(r => setTimeout(r, 1500));
+      await wait(1500);
 
       // "也不是借给你的"
       const t4 = el('div', 'type-line');
@@ -1251,7 +1281,7 @@ function sceneReveal(container, glowEl) {
       await tw4.start();
 
       // Pause
-      await new Promise(r => setTimeout(r, 1500));
+      await wait(1500);
 
       // "它从一开始就是为你准备的"
       const t5 = el('div', 'type-line');
@@ -1260,7 +1290,7 @@ function sceneReveal(container, glowEl) {
       await tw5.start();
 
       // Pause
-      await new Promise(r => setTimeout(r, 1800));
+      await wait(1800);
 
       // Continue button
       const btn = createButton(container);
@@ -1290,60 +1320,60 @@ function sceneBlessing(container, glowEl) {
       container.appendChild(bigName);
       await fadeIn(bigName, 0);
 
-      await new Promise(r => setTimeout(r, 600));
+      await wait(600);
 
       // 祝你生日快乐
       const happyBday = el('div', 'large-text', '祝你生日快乐 ✨');
       container.appendChild(happyBday);
       await fadeIn(happyBday, 200);
 
-      await new Promise(r => setTimeout(r, 800));
+      await wait(800);
 
       // Wishes
       const wish1 = el('div', 'medium-text', '愿你继续追喜欢的剧');
       container.appendChild(wish1);
       await fadeIn(wish1, 200);
 
-      await new Promise(r => setTimeout(r, 500));
+      await wait(500);
 
       const wish2 = el('div', 'medium-text', '做喜欢的手工');
       container.appendChild(wish2);
       await fadeIn(wish2, 200);
 
-      await new Promise(r => setTimeout(r, 500));
+      await wait(500);
 
       const wish3 = el('div', 'medium-text', '过喜欢的生活');
       container.appendChild(wish3);
       await fadeIn(wish3, 200);
 
-      await new Promise(r => setTimeout(r, 500));
+      await wait(500);
 
       const wish4 = el('div', 'medium-text', '不需要内耗');
       container.appendChild(wish4);
       await fadeIn(wish4, 200);
 
-      await new Promise(r => setTimeout(r, 500));
+      await wait(500);
 
       const wish5 = el('div', 'medium-text', '不舒服就要说出来');
       container.appendChild(wish5);
       await fadeIn(wish5, 200);
 
-      await new Promise(r => setTimeout(r, 1000));
+      await wait(1000);
 
       // Gift emoji
       const gift = el('div', 'gift-icon', '🎁');
       container.appendChild(gift);
-      await new Promise(r => setTimeout(r, 200));
+      await wait(200);
       gift.classList.add('visible');
 
-      await new Promise(r => setTimeout(r, 800));
+      await wait(800);
 
       // 恭喜获得 iPad
       const finalText = el('div', 'medium-text', '恭喜你获得了一台新的 iPad🎁');
       container.appendChild(finalText);
       await fadeIn(finalText, 100);
 
-      await new Promise(r => setTimeout(r, 2000));
+      await wait(2000);
 
       // Continue button
       const btn = createButton(container);
@@ -1372,39 +1402,39 @@ function sceneEnding(container) {
       container.appendChild(bigName);
       await fadeIn(bigName, 0);
 
-      await new Promise(r => setTimeout(r, 800));
+      await wait(800);
 
       // "生日快乐"
       const happyBday = el('div', 'large-text', '生日快乐');
       container.appendChild(happyBday);
       await fadeIn(happyBday, 300);
 
-      await new Promise(r => setTimeout(r, 2000));
+      await wait(2000);
 
       // Small note
       const note1 = el('div', 'small-text', '顺便说明：');
       container.appendChild(note1);
       await fadeIn(note1, 0);
 
-      await new Promise(r => setTimeout(r, 600));
+      await wait(600);
 
       const note2 = el('div', 'small-text', '有个人已经连续14年坚持给你过生日。');
       container.appendChild(note2);
       await fadeIn(note2, 300);
 
-      await new Promise(r => setTimeout(r, 700));
+      await wait(700);
 
       const note3 = el('div', 'small-text', '目前暂无停止计划，嘻嘻🌙');
       container.appendChild(note3);
       await fadeIn(note3, 400);
 
-      await new Promise(r => setTimeout(r, 700));
+      await wait(700);
 
       const note4 = el('div', 'small-text', '预计陪你过多67个生日~');
       container.appendChild(note4);
       await fadeIn(note4, 400);
 
-      await new Promise(r => setTimeout(r, 2500));
+      await wait(2500);
 
       // Continue button
       const btn = createButton(container);
@@ -1426,19 +1456,19 @@ function sceneFarewell(container) {
       container.appendChild(line0);
       await fadeIn(line0, 0);
 
-      await new Promise(r => setTimeout(r, 1200));
+      await wait(1200);
 
       const line1 = el('div', 'medium-text', '从底部上滑开始享用你的新iPad吧');
       container.appendChild(line1);
       await fadeIn(line1, 0);
 
-      await new Promise(r => setTimeout(r, 1500));
+      await wait(1500);
 
       const line2 = el('div', 'medium-text', '忍住不要哭哟，这个秘密礼物藏了我很多天');
       container.appendChild(line2);
       await fadeIn(line2, 300);
 
-      await new Promise(r => setTimeout(r, 1500));
+      await wait(1500);
 
       const line3 = el('div', 'small-text', '难受死我了');
       container.appendChild(line3);
@@ -1468,29 +1498,28 @@ function sceneFarewell(container) {
   sm.sceneIndex = 0;
   await sm.goTo('boot', (el) => sceneBoot(el));
 
-  // Tap to skip typewriter
   const tapHandler1 = () => { if (sm.currentController) sm.currentController.handleTap(); };
-  app.addEventListener('click', tapHandler1);
+  document.addEventListener('click', tapHandler1);
   await sm.currentController.waitContinue();
-  app.removeEventListener('click', tapHandler1);
+  document.removeEventListener('click', tapHandler1);
 
   // ── SCENE 2: Profile ──
   sm.sceneIndex = 1;
   await sm.goTo('profile', (el) => sceneProfile(el));
 
   const tapHandler2 = () => { if (sm.currentController) sm.currentController.handleTap(); };
-  app.addEventListener('click', tapHandler2);
+  document.addEventListener('click', tapHandler2);
   await sm.currentController.waitContinue();
-  app.removeEventListener('click', tapHandler2);
+  document.removeEventListener('click', tapHandler2);
 
   // ── SCENE 3: Archive ──
   sm.sceneIndex = 2;
   await sm.goTo('archive', (el) => sceneArchive(el));
 
   const tapHandler3 = () => { if (sm.currentController) sm.currentController.handleTap(); };
-  app.addEventListener('click', tapHandler3);
+  document.addEventListener('click', tapHandler3);
   await sm.currentController.waitContinue();
-  app.removeEventListener('click', tapHandler3);
+  document.removeEventListener('click', tapHandler3);
 
   // ── SCENE 4: Quiz ──
   sm.sceneIndex = 3;
@@ -1500,22 +1529,30 @@ function sceneFarewell(container) {
   // ── SCENE 5: Verify ──
   sm.sceneIndex = 4;
   await sm.goTo('verify', (el) => sceneVerify(el));
+  document.addEventListener('click', triggerSkip);
   await sm.currentController.waitContinue();
+  document.removeEventListener('click', triggerSkip);
 
   // ── SCENE 6: Reveal ──
   sm.sceneIndex = 5;
   await sm.goTo('reveal', (el) => sceneReveal(el, glowEl));
+  document.addEventListener('click', triggerSkip);
   await sm.currentController.waitContinue();
+  document.removeEventListener('click', triggerSkip);
 
   // ── SCENE 7: Blessing ──
   sm.sceneIndex = 6;
   await sm.goTo('blessing', (el) => sceneBlessing(el, glowEl));
+  document.addEventListener('click', triggerSkip);
   await sm.currentController.waitContinue();
+  document.removeEventListener('click', triggerSkip);
 
   // ── SCENE 8: Ending ──
   sm.sceneIndex = 7;
   await sm.goTo('ending', (el) => sceneEnding(el));
+  document.addEventListener('click', triggerSkip);
   await sm.currentController.waitContinue();
+  document.removeEventListener('click', triggerSkip);
 
   // ── SCENE 9: Farewell ──
   sm.sceneIndex = 8;
