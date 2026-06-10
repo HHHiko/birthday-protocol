@@ -656,7 +656,7 @@ class ParticleCanvas {
 
 // ── Typewriter ──
 class Typewriter {
-  constructor(element, text, speed = 15) {
+  constructor(element, text, speed = 8) {
     this.el = element;
     this.fullText = text;
     this.speed = speed;
@@ -819,47 +819,29 @@ function createTypedSequence(container, lines, speed = 42, lineDelay = 300) {
   let currentIdx = 0;
   let resolveAll = null;
   let allDone = false;
-  let delayTimer = null;
-  let skipDelay = false;
   const done = new Promise(r => { resolveAll = r; });
 
-  async function showLine(idx) {
+  async function startLine(idx) {
     if (idx >= tws.length) {
       allDone = true;
       resolveAll();
       return;
     }
     currentIdx = idx;
-    skipDelay = false;
     await tws[idx].start();
-    // If skip was called during typing, skip the delay too
-    if (skipDelay) {
-      skipDelay = false;
-      showLine(idx + 1);
-      return;
-    }
-    delayTimer = setTimeout(() => {
-      delayTimer = null;
-      showLine(idx + 1);
-    }, lineDelay);
   }
 
   return {
-    start: () => { showLine(0); return done; },
+    start: () => { startLine(0); return done; },
     advance: () => {
       if (allDone) return;
-      // During delay — cancel it and go to next immediately
-      if (delayTimer) {
-        clearTimeout(delayTimer);
-        delayTimer = null;
-        showLine(currentIdx + 1);
-        return;
-      }
-      // During typing — complete current AND skip upcoming delay
+      // If current line still typing, complete it instantly then go next
       if (currentIdx < tws.length && tws[currentIdx].running) {
-        skipDelay = true;
         tws[currentIdx].skip();
       }
+      // Advance to next line
+      currentIdx++;
+      startLine(currentIdx);
     },
     isDone: () => allDone,
     getLineElements: () => lineEls,
@@ -892,7 +874,7 @@ function sceneBoot(container) {
     '正在启动生日协议…',
   ];
 
-  const seq = createTypedSequence(container, lines, 18, 250);
+  const seq = createTypedSequence(container, lines, 8, 0);
   const btn = createButton(container);
   let started = false;
 
@@ -932,7 +914,7 @@ function sceneProfile(container) {
   const spacer = el('div', 'spacer-20');
   container.appendChild(spacer);
 
-  const seq = createTypedSequence(container, lines, 18, 250);
+  const seq = createTypedSequence(container, lines, 8, 0);
   const btn = createButton(container);
   let started = false;
 
@@ -971,7 +953,7 @@ function sceneArchive(container) {
   const spacer = el('div', 'spacer-20');
   container.appendChild(spacer);
 
-  const seq = createTypedSequence(container, lines, 18, 250);
+  const seq = createTypedSequence(container, lines, 8, 0);
   const btn = createButton(container);
   let started = false;
 
@@ -1193,14 +1175,14 @@ function sceneVerify(container) {
       await wait(1000);
       const text1 = el('div', 'type-line', '正在比对特征…');
       container.appendChild(text1);
-      const tw1 = new Typewriter(text1, '正在比对特征…', 18);
+      const tw1 = new Typewriter(text1, '正在比对特征…', 8);
       await tw1.start();
 
       // "匹配成功"
       await wait(600);
       const text2 = el('div', 'type-line');
       container.appendChild(text2);
-      const tw2 = new Typewriter(text2, '匹配成功', 15);
+      const tw2 = new Typewriter(text2, '匹配成功', 8);
       await tw2.start();
 
       // Pause
@@ -1252,14 +1234,14 @@ function sceneReveal(container, glowEl) {
       await wait(600);
       const t1 = el('div', 'type-line');
       container.appendChild(t1);
-      const tw1 = new Typewriter(t1, '礼物已准备完成', 18);
+      const tw1 = new Typewriter(t1, '礼物已准备完成', 8);
       await tw1.start();
 
       // "请查看你手中的设备"
       await wait(800);
       const t2 = el('div', 'type-line');
       container.appendChild(t2);
-      const tw2 = new Typewriter(t2, '请查看你手中的设备', 18);
+      const tw2 = new Typewriter(t2, '请查看你手中的设备', 8);
       await tw2.start();
 
       // Pause
@@ -1268,7 +1250,7 @@ function sceneReveal(container, glowEl) {
       // "这不是演示设备"
       const t3 = el('div', 'type-line');
       container.appendChild(t3);
-      const tw3 = new Typewriter(t3, '这台不是演示设备', 18);
+      const tw3 = new Typewriter(t3, '这台不是演示设备', 8);
       await tw3.start();
 
       // Pause
@@ -1277,7 +1259,7 @@ function sceneReveal(container, glowEl) {
       // "也不是借给你的"
       const t4 = el('div', 'type-line');
       container.appendChild(t4);
-      const tw4 = new Typewriter(t4, '也不是借给你玩的', 18);
+      const tw4 = new Typewriter(t4, '也不是借给你玩的', 8);
       await tw4.start();
 
       // Pause
@@ -1286,7 +1268,7 @@ function sceneReveal(container, glowEl) {
       // "它从一开始就是为你准备的"
       const t5 = el('div', 'type-line');
       container.appendChild(t5);
-      const tw5 = new Typewriter(t5, '它从一开始就是为你准备的', 18);
+      const tw5 = new Typewriter(t5, '它从一开始就是为你准备的', 8);
       await tw5.start();
 
       // Pause
