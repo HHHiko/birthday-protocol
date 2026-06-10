@@ -721,7 +721,7 @@ class SceneManager {
     this.currentScene = null;
     this.currentController = null;
     this.sceneIndex = 0;
-    this.totalScenes = 9;
+    this.totalScenes = 10;
     this.transitioning = false;
     this.sceneEl = null;
   }
@@ -863,7 +863,28 @@ function createButton(container, label = '继续') {
 }
 
 // ═══════════════════════════════════════════════════════════
-// SCENE 1: Boot Sequence
+// SCENE 1: Splash — start button only
+// ═══════════════════════════════════════════════════════════
+function sceneSplash(container) {
+  let resolveContinue = null;
+  const continuePromise = new Promise(r => { resolveContinue = r; });
+
+  return {
+    start: async () => {
+      const title = el('div', 'large-text', '✨ 生日协议 ✨');
+      container.appendChild(title);
+      await fadeIn(title, 0);
+
+      const btn = createButton(container, '启动');
+      btn.show();
+      btn.waitClick().then(() => resolveContinue());
+    },
+    waitContinue: () => continuePromise,
+  };
+}
+
+// ═══════════════════════════════════════════════════════════
+// SCENE 2: Boot Sequence
 // ═══════════════════════════════════════════════════════════
 function sceneBoot(container) {
   const lines = [
@@ -894,7 +915,7 @@ function sceneBoot(container) {
 }
 
 // ═══════════════════════════════════════════════════════════
-// SCENE 2: Profile Matching
+// SCENE 3: Profile Matching
 // ═══════════════════════════════════════════════════════════
 function sceneProfile(container) {
   const title = el('div', 'scene-title', '正在匹配用户信息…');
@@ -936,7 +957,7 @@ function sceneProfile(container) {
 }
 
 // ═══════════════════════════════════════════════════════════
-// SCENE 3: Archive Generation
+// SCENE 4: Archive Generation
 // ═══════════════════════════════════════════════════════════
 function sceneArchive(container) {
   const title = el('div', 'scene-title', '⭐  正在生成生日档案…');
@@ -975,7 +996,7 @@ function sceneArchive(container) {
 }
 
 // ═══════════════════════════════════════════════════════════
-// SCENE 4: Quiz
+// SCENE 5: Quiz
 // ═══════════════════════════════════════════════════════════
 function sceneQuiz(container, swipeHint) {
   const quizData = [
@@ -1156,7 +1177,7 @@ function sceneQuiz(container, swipeHint) {
 }
 
 // ═══════════════════════════════════════════════════════════
-// SCENE 5: Identity Verification
+// SCENE 6: Identity Verification
 // ═══════════════════════════════════════════════════════════
 function sceneVerify(container) {
   let resolveContinue = null;
@@ -1216,7 +1237,7 @@ function sceneVerify(container) {
 }
 
 // ═══════════════════════════════════════════════════════════
-// SCENE 6: Gift Reveal
+// SCENE 7: Gift Reveal
 // ═══════════════════════════════════════════════════════════
 function sceneReveal(container, glowEl) {
   let resolveScene = null;
@@ -1286,7 +1307,7 @@ function sceneReveal(container, glowEl) {
 }
 
 // ═══════════════════════════════════════════════════════════
-// SCENE 7: Blessing
+// SCENE 8: Blessing
 // ═══════════════════════════════════════════════════════════
 function sceneBlessing(container, glowEl) {
   let resolveScene = null;
@@ -1371,7 +1392,7 @@ function sceneBlessing(container, glowEl) {
 }
 
 // ═══════════════════════════════════════════════════════════
-// SCENE 8: Ending
+// SCENE 9: Ending
 // ═══════════════════════════════════════════════════════════
 function sceneEnding(container) {
   let resolveScene = null;
@@ -1429,7 +1450,7 @@ function sceneEnding(container) {
 }
 
 // ═══════════════════════════════════════════════════════════
-// SCENE 9: Farewell
+// SCENE 10: Farewell
 // ═══════════════════════════════════════════════════════════
 function sceneFarewell(container) {
   return {
@@ -1476,8 +1497,13 @@ function sceneFarewell(container) {
   // Scene manager
   const sm = new SceneManager(app, glowEl, swipeHint);
 
-  // ── SCENE 1: Boot ──
+  // ── SCENE 1: Splash ──
   sm.sceneIndex = 0;
+  await sm.goTo('splash', (el) => sceneSplash(el));
+  await sm.currentController.waitContinue();
+
+  // ── SCENE 2: Boot ──
+  sm.sceneIndex = 1;
   await sm.goTo('boot', (el) => sceneBoot(el));
 
   const tapHandler1 = () => { if (sm.currentController) sm.currentController.handleTap(); };
@@ -1485,8 +1511,8 @@ function sceneFarewell(container) {
   await sm.currentController.waitContinue();
   document.removeEventListener('click', tapHandler1);
 
-  // ── SCENE 2: Profile ──
-  sm.sceneIndex = 1;
+  // ── SCENE 3: Profile ──
+  sm.sceneIndex = 2;
   await sm.goTo('profile', (el) => sceneProfile(el));
 
   const tapHandler2 = () => { if (sm.currentController) sm.currentController.handleTap(); };
@@ -1494,8 +1520,8 @@ function sceneFarewell(container) {
   await sm.currentController.waitContinue();
   document.removeEventListener('click', tapHandler2);
 
-  // ── SCENE 3: Archive ──
-  sm.sceneIndex = 2;
+  // ── SCENE 4: Archive ──
+  sm.sceneIndex = 3;
   await sm.goTo('archive', (el) => sceneArchive(el));
 
   const tapHandler3 = () => { if (sm.currentController) sm.currentController.handleTap(); };
@@ -1503,41 +1529,41 @@ function sceneFarewell(container) {
   await sm.currentController.waitContinue();
   document.removeEventListener('click', tapHandler3);
 
-  // ── SCENE 4: Quiz ──
-  sm.sceneIndex = 3;
+  // ── SCENE 5: Quiz ──
+  sm.sceneIndex = 4;
   await sm.goTo('quiz', (el) => sceneQuiz(el, swipeHint));
   await sm.currentController.waitContinue();
 
-  // ── SCENE 5: Verify ──
-  sm.sceneIndex = 4;
+  // ── SCENE 6: Verify ──
+  sm.sceneIndex = 5;
   await sm.goTo('verify', (el) => sceneVerify(el));
   document.addEventListener('click', triggerSkip);
   await sm.currentController.waitContinue();
   document.removeEventListener('click', triggerSkip);
 
-  // ── SCENE 6: Reveal ──
-  sm.sceneIndex = 5;
+  // ── SCENE 7: Reveal ──
+  sm.sceneIndex = 6;
   await sm.goTo('reveal', (el) => sceneReveal(el, glowEl));
   document.addEventListener('click', triggerSkip);
   await sm.currentController.waitContinue();
   document.removeEventListener('click', triggerSkip);
 
-  // ── SCENE 7: Blessing ──
-  sm.sceneIndex = 6;
+  // ── SCENE 8: Blessing ──
+  sm.sceneIndex = 7;
   await sm.goTo('blessing', (el) => sceneBlessing(el, glowEl));
   document.addEventListener('click', triggerSkip);
   await sm.currentController.waitContinue();
   document.removeEventListener('click', triggerSkip);
 
-  // ── SCENE 8: Ending ──
-  sm.sceneIndex = 7;
+  // ── SCENE 9: Ending ──
+  sm.sceneIndex = 8;
   await sm.goTo('ending', (el) => sceneEnding(el));
   document.addEventListener('click', triggerSkip);
   await sm.currentController.waitContinue();
   document.removeEventListener('click', triggerSkip);
 
-  // ── SCENE 9: Farewell ──
-  sm.sceneIndex = 8;
+  // ── SCENE 10: Farewell ──
+  sm.sceneIndex = 9;
   await sm.goTo('farewell', (el) => sceneFarewell(el));
   // Final page — stays forever
 
