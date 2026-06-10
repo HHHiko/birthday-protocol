@@ -388,28 +388,6 @@
   .swipe-hint.visible {
     opacity: 1;
   }
-
-  /* ── Music toggle ── */
-  #music-btn {
-    position: fixed; top: 24px; right: 28px; z-index: 200;
-    width: 44px; height: 44px; border-radius: 50%;
-    background: rgba(255,220,160,0.06);
-    border: 1px solid rgba(255,220,160,0.12);
-    color: rgba(255,240,220,0.55);
-    font-size: 1.1rem;
-    display: flex; align-items: center; justify-content: center;
-    cursor: pointer;
-    transition: all 0.4s ease;
-    -webkit-tap-highlight-color: transparent;
-  }
-  #music-btn:active {
-    background: rgba(255,220,160,0.12);
-    border-color: rgba(255,220,160,0.25);
-  }
-  #music-btn.muted {
-    color: rgba(255,240,220,0.22);
-    border-color: rgba(255,220,160,0.05);
-  }
 </style>
 </head>
 <body>
@@ -419,7 +397,6 @@
 <div class="glow-overlay" id="glow"></div>
 <div id="app"></div>
 <div class="swipe-hint" id="swipe-hint">左右滑动切换题目</div>
-<button id="music-btn" title="音乐">🎵</button>
 
 <script>
 /* ================================================================
@@ -1432,115 +1409,6 @@ function sceneEnding(container) {
 }
 
 // ═══════════════════════════════════════════════════════════
-// AmbientMusic — Web Audio API dreamy background
-// ═══════════════════════════════════════════════════════════
-class AmbientMusic {
-  constructor() {
-    this.ctx = null;
-    this.playing = false;
-    this.muted = false;
-    this.masterGain = null;
-    this.padGain = null;
-    this.nextTimeout = null;
-  }
-
-  async init() {
-    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
-    this.masterGain = this.ctx.createGain();
-    this.masterGain.gain.value = 0.18;
-    this.masterGain.connect(this.ctx.destination);
-
-    // Soft ambient pad — layered detuned sines
-    this.padGain = this.ctx.createGain();
-    this.padGain.gain.value = 0.06;
-    this.padGain.connect(this.masterGain);
-
-    const baseFreqs = [130.81, 196.00, 261.63, 329.63]; // C3 G3 C4 E4
-    baseFreqs.forEach(freq => {
-      const osc = this.ctx.createOscillator();
-      osc.type = 'sine';
-      osc.frequency.value = freq + (Math.random() - 0.5) * 1.5;
-      osc.connect(this.padGain);
-      osc.start();
-    });
-
-    // Subtle shimmer — high octave
-    const shimmerGain = this.ctx.createGain();
-    shimmerGain.gain.value = 0.025;
-    shimmerGain.connect(this.masterGain);
-    [523.25, 659.25, 783.99].forEach(freq => {
-      const osc = this.ctx.createOscillator();
-      osc.type = 'sine';
-      osc.frequency.value = freq + (Math.random() - 0.5) * 2;
-      osc.connect(shimmerGain);
-      osc.start();
-    });
-  }
-
-  playChime(freq, time, duration = 1.8) {
-    const osc = this.ctx.createOscillator();
-    const gain = this.ctx.createGain();
-    osc.type = 'sine';
-    osc.frequency.value = freq;
-    // Soft bell envelope
-    gain.gain.setValueAtTime(0, time);
-    gain.gain.linearRampToValueAtTime(0.10, time + 0.015);
-    gain.gain.exponentialRampToValueAtTime(0.001, time + duration);
-    osc.connect(gain);
-    gain.connect(this.masterGain);
-    osc.start(time);
-    osc.stop(time + duration);
-  }
-
-  scheduleMelody() {
-    // Pentatonic — dreamy and never dissonant
-    const scale = [261.63, 293.66, 329.63, 392.00, 440.00, 523.25, 587.33, 659.25, 783.99, 880.00];
-    const melody = [
-      { i: 5, t: 0, d: 1.6 },    // C5
-      { i: 6, t: 2, d: 1.0 },    // D5
-      { i: 7, t: 3.4, d: 1.6 },  // E5
-      { i: 9, t: 5.6, d: 1.2 },  // A5
-      { i: 7, t: 7.2, d: 1.0 },  // E5
-      { i: 6, t: 8.6, d: 1.8 },  // D5
-      { i: 5, t: 10.8, d: 2.5 }, // C5
-    ];
-
-    const loopDuration = 14;
-    const scheduleLoop = () => {
-      if (!this.playing || this.muted) return;
-      const now = this.ctx.currentTime;
-      const loopStart = now;
-      melody.forEach(m => {
-        this.playChime(scale[m.i], loopStart + m.t, m.d);
-      });
-      // sprinkle random high notes
-      for (let i = 0; i < 3; i++) {
-        const rNote = scale[5 + Math.floor(Math.random() * 5)];
-        const rTime = loopStart + 1.5 + Math.random() * (loopDuration - 3);
-        this.playChime(rNote, rTime, 1.0 + Math.random() * 1.5);
-      }
-      this.nextTimeout = setTimeout(scheduleLoop, loopDuration * 1000);
-    };
-    scheduleLoop();
-  }
-
-  async start() {
-    if (!this.ctx) await this.init();
-    if (this.ctx.state === 'suspended') await this.ctx.resume();
-    this.playing = true;
-    this.scheduleMelody();
-  }
-
-  toggle() {
-    this.muted = !this.muted;
-    if (this.masterGain) {
-      this.masterGain.gain.value = this.muted ? 0 : 0.18;
-    }
-    return this.muted;
-  }
-}
-
-// ═══════════════════════════════════════════════════════════
 // MAIN: Bootstrap
 // ═══════════════════════════════════════════════════════════
 (async function main() {
@@ -1548,26 +1416,9 @@ class AmbientMusic {
   const app = document.getElementById('app');
   const glowEl = document.getElementById('glow');
   const swipeHint = document.getElementById('swipe-hint');
-  const musicBtn = document.getElementById('music-btn');
 
   // Start particles
   new ParticleCanvas(canvas);
-
-  // Ambient music — start on first tap
-  const music = new AmbientMusic();
-  const startMusic = async () => {
-    await music.start();
-    musicBtn.classList.remove('muted');
-  };
-  document.addEventListener('click', startMusic, { once: true });
-
-  // Music toggle button
-  musicBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    const muted = music.toggle();
-    musicBtn.textContent = muted ? '🔇' : '🎵';
-    musicBtn.classList.toggle('muted', muted);
-  });
 
   // Scene manager
   const sm = new SceneManager(app, glowEl, swipeHint);
