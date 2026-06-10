@@ -276,6 +276,11 @@
     box-shadow: 0 0 40px rgba(255,200,120,0.12), inset 0 0 20px rgba(255,220,150,0.04);
     text-shadow: 0 0 20px rgba(255,220,150,0.25);
   }
+  .quiz-option.selected-wrong {
+    background: rgba(255,160,110,0.06);
+    border-color: rgba(255,150,100,0.35);
+    text-shadow: 0 0 15px rgba(255,150,80,0.2);
+  }
   .quiz-feedback {
     font-size: clamp(0.85rem, 1.4vw, 0.95rem);
     font-weight: 500;
@@ -914,16 +919,21 @@ function sceneQuiz(container, swipeHint) {
       options: ['A  上班', 'B  操心', 'C  过生日'],
       correct: 2,
       feedback: '回答正确。今天你唯一的工作，就是过生日。',
+      wrongFeedback: '不对。今天不上班，不操心，只过生日。',
     },
     {
       question: '今天是否允许自己开心一点？',
       options: ['A  允许', 'B  必须允许'],
-      feedback: '很好。这是今天唯一的正确选项。',
+      correct: 1,
+      feedback: '很好。「必须」才是今天的标准答案。',
+      wrongFeedback: '「允许」太勉强了。今天必须开心。',
     },
     {
       question: '今天是否值得收到礼物？',
       options: ['A  值得', 'B  非常值得'],
+      correct: 1,
       feedback: '当然值得。而且礼物已经在路上了。',
+      wrongFeedback: '仅仅是「值得」？远远不够。是「非常值得」。',
     },
   ];
 
@@ -958,16 +968,24 @@ function sceneQuiz(container, swipeHint) {
 
     if (answered[index]) {
       // Show answered state — highlight the option the user actually picked
+      const qCorrect = q.correct !== undefined ? selectedOption[index] === q.correct : true;
       q.options.forEach((opt, i) => {
         const optEl = el('div', 'quiz-option', opt);
         if (i === selectedOption[index]) {
-          optEl.classList.add('selected');
+          optEl.classList.add(qCorrect ? 'selected' : 'selected-wrong');
+          if (!qCorrect) {
+            optEl.style.borderColor = 'rgba(255,150,100,0.35)';
+            optEl.style.background = 'rgba(255,180,120,0.06)';
+          }
         }
         optEl.style.pointerEvents = 'none';
         optionsContainer.appendChild(optEl);
       });
 
-      const fb = el('div', 'quiz-feedback', q.feedback);
+      const isCorrect = q.correct !== undefined ? selectedOption[index] === q.correct : true;
+      const fbText = isCorrect ? q.feedback : (q.wrongFeedback || '不对哦，再想想？');
+      const fb = el('div', 'quiz-feedback', fbText);
+      fb.style.color = isCorrect ? '' : 'rgba(255,180,120,0.75)';
       quizContainer.appendChild(fb);
       requestAnimationFrame(() => { fb.classList.add('visible'); });
 
@@ -996,11 +1014,18 @@ function sceneQuiz(container, swipeHint) {
           answered[index] = true;
           selectedOption[index] = i;
 
-          // Mark clicked as selected
-          optEl.classList.add('selected');
+          // Mark clicked as selected (correct or wrong visual)
+          const isCorrect = q.correct !== undefined ? i === q.correct : true;
+          optEl.classList.add(isCorrect ? 'selected' : 'selected-wrong');
 
           // Show feedback
-          const fb = el('div', 'quiz-feedback', q.feedback);
+          const fbText = isCorrect ? q.feedback : (q.wrongFeedback || '不对哦，再想想？');
+          const fb = el('div', 'quiz-feedback', fbText);
+          if (!isCorrect) {
+            fb.style.color = 'rgba(255,180,120,0.75)';
+            optEl.style.borderColor = 'rgba(255,150,100,0.35)';
+            optEl.style.background = 'rgba(255,180,120,0.06)';
+          }
           quizContainer.appendChild(fb);
           requestAnimationFrame(() => { fb.classList.add('visible'); });
 
