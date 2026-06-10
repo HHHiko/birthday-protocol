@@ -721,7 +721,7 @@ class SceneManager {
     this.currentScene = null;
     this.currentController = null;
     this.sceneIndex = 0;
-    this.totalScenes = 8;
+    this.totalScenes = 9;
     this.transitioning = false;
     this.sceneEl = null;
   }
@@ -1362,6 +1362,9 @@ function sceneBlessing(container, glowEl) {
 // SCENE 8: Ending
 // ═══════════════════════════════════════════════════════════
 function sceneEnding(container) {
+  let resolveScene = null;
+  const sceneDone = new Promise(r => { resolveScene = r; });
+
   return {
     start: async () => {
       // "林婷"
@@ -1403,7 +1406,39 @@ function sceneEnding(container) {
 
       await new Promise(r => setTimeout(r, 2500));
 
-      // That's it — the page stays on this scene
+      // Continue button
+      const btn = createButton(container);
+      btn.show();
+      await btn.waitClick();
+      resolveScene();
+    },
+    waitContinue: () => sceneDone,
+  };
+}
+
+// ═══════════════════════════════════════════════════════════
+// SCENE 9: Farewell
+// ═══════════════════════════════════════════════════════════
+function sceneFarewell(container) {
+  return {
+    start: async () => {
+      const line1 = el('div', 'medium-text', '从底部上滑开始享用你的新iPad吧');
+      container.appendChild(line1);
+      await fadeIn(line1, 0);
+
+      await new Promise(r => setTimeout(r, 1500));
+
+      const line2 = el('div', 'medium-text', '忍住不要哭哟，这个秘密礼物藏了我很多天');
+      container.appendChild(line2);
+      await fadeIn(line2, 300);
+
+      await new Promise(r => setTimeout(r, 1500));
+
+      const line3 = el('div', 'small-text', '难受死我了');
+      container.appendChild(line3);
+      await fadeIn(line3, 400);
+
+      // Stay on this page forever
     },
   };
 }
@@ -1474,7 +1509,12 @@ function sceneEnding(container) {
   // ── SCENE 8: Ending ──
   sm.sceneIndex = 7;
   await sm.goTo('ending', (el) => sceneEnding(el));
-  // No continue — this is the final scene
+  await sm.currentController.waitContinue();
+
+  // ── SCENE 9: Farewell ──
+  sm.sceneIndex = 8;
+  await sm.goTo('farewell', (el) => sceneFarewell(el));
+  // Final page — stays forever
 
 })();
 </script>
